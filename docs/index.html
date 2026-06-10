@@ -286,7 +286,14 @@
   p { margin-bottom: 0.8rem; }
   p:last-child { margin-bottom: 0; }
 
+  /* Mobile: tables scroll horizontally instead of breaking layout */
+  .table-scroll { overflow-x: auto; margin: 1rem 0; }
+  .table-scroll > table { margin: 0; min-width: 520px; }
+
   @media (max-width: 640px) {
+    .corner-tag { position: static; text-align: left; margin-bottom: 1rem; line-height: 1.7; }
+    .corner-tag span { display: inline-block; margin-right: 1.2rem; }
+    .challenge-head { flex-wrap: wrap; }
     .stats-row { grid-template-columns: 1fr 1fr; }
     .method-grid { grid-template-columns: 1fr; }
     footer { flex-direction: column; gap: 0.5rem; }
@@ -360,6 +367,11 @@
   .footer-nav a { color: var(--muted); text-decoration: none; }
   .footer-nav a:hover { color: var(--green); }
   .footer-nav .fsep { color: var(--border-bright); }
+
+  @media (max-width: 420px) {
+    h1 { font-size: 1.8rem; }
+    .container { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
 </style>
 </head>
 <body>
@@ -653,7 +665,7 @@
   <p>CTF categories are not abstract puzzles — each one rehearses a capability that a security role
   uses in the field. This is how consistent practice translates into job-relevant skill.</p>
 
-  <table class="data-table">
+  <div class="table-scroll"><table class="data-table">
     <tr><th>CTF capability</th><th>Real-world equivalent</th><th>Role</th></tr>
     <tr><td>Service enumeration &amp; version triage</td><td>External attack-surface assessment; vulnerability validation</td><td>Pentester · SOC L2</td></tr>
     <tr><td>Web exploitation (SQLi, LFI, SSTI)</td><td>Application security testing; OWASP-aligned review</td><td>AppSec · Pentester</td></tr>
@@ -662,11 +674,11 @@
     <tr><td>Reading exploit code &amp; mapping CVEs</td><td>Threat intelligence; exploit triage; patch prioritisation</td><td>Threat Intel · SOC</td></tr>
     <tr><td>Evidence logging &amp; SHA-256 integrity</td><td>Chain-of-custody discipline; defensible reporting</td><td>DFIR · Consultant</td></tr>
     <tr><td>Documenting failed paths</td><td>Reproducible methodology; report writing</td><td>Every security role</td></tr>
-  </table>
+  </table></div>
 
   <div class="section-break"><span>Tool Stack</span></div>
 
-  <table class="data-table">
+  <div class="table-scroll"><table class="data-table">
     <tr><th>Category</th><th>Tools</th></tr>
     <tr><td>Recon / enumeration</td><td>nmap, gobuster, ffuf, whatweb, nikto, enum4linux, dig</td></tr>
     <tr><td>Web exploitation</td><td>Burp Suite, sqlmap, manual injection, curl</td></tr>
@@ -674,7 +686,7 @@
     <tr><td>Privilege escalation</td><td>linpeas, winpeas, pspy, GTFOBins, PowerUp.ps1</td></tr>
     <tr><td>Post-exploitation</td><td>Metasploit (where appropriate), manual shell stabilisation</td></tr>
     <tr><td>Binary / reversing</td><td>gdb, pwndbg, ghidra, objdump, strings</td></tr>
-  </table>
+  </table></div>
 
   <div class="section-break"><span>Repository</span></div>
 
