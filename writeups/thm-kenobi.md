@@ -22,6 +22,14 @@ The chain abuses ProFTPD's `mod_copy` to stage an SSH key into an NFS-mounted pa
 over SSH, then escalates to root via a **SUID binary with an unsafe `PATH`** dependency. Teaches
 service-chaining and SUID/PATH privilege escalation.
 
+## Scenario value (study scaffold)
+
+- **What it tests:** multi-service enumeration and *service chaining* — combining a ProFTPD bug, an
+  NFS export, and SSH into one path, then a SUID/PATH privilege escalation.
+- **What completing it demonstrates:** the habit of enumerating *every* service and reasoning about
+  how they connect (no single bug suffices), plus classic Linux privesc via an unsafe SUID binary
+  (MITRE T1574.007 / T1548.001).
+
 ## Key vulnerability class
 
 - **Foothold:** ProFTPD **1.3.5 `mod_copy`** arbitrary file copy — **CVE-2015-3306** (the

@@ -184,3 +184,70 @@ Scan all ports → service-scan open ports → enumerate each service (note rule
 
 > Document the reasoning, not just the commands. "Why this vector, and what failed first" is the
 > part that transfers to real engagements and to interviews.
+
+---
+
+## 6. How CTF practice maps to a real pentest (PTES)
+
+CTF boxes are a *subset* of a professional engagement — they exercise the technical core but skip the
+process wrapper. Knowing the mapping (and the gaps) is what turns "I do CTFs" into "I understand
+engagements". The seven PTES phases vs what a CTF actually covers:
+
+| PTES phase | CTF coverage | What CTFs leave out (and you must learn separately) |
+|------------|--------------|------------------------------------------------------|
+| **Pre-engagement / scoping** | None — scope is the box | Rules of engagement, authorisation, scope boundaries, emergency contacts |
+| **Intelligence gathering** | Partial — active recon on one host | Real OSINT, multi-host attack surface, client-specific intel |
+| **Threat modelling** | Implicit | Mapping findings to the client's actual business risk |
+| **Vulnerability analysis** | Strong — version→CVE mapping, enumeration | Authenticated scanning at scale, asset criticality weighting |
+| **Exploitation** | Strong — the core CTF skill | Production-safety (don't crash the client), change windows |
+| **Post-exploitation** | Strong — privesc, loot, pivot | Scoped data handling, "prove impact without exfiltrating real data" |
+| **Reporting** | This is where the gauntlet writeups add the most | Exec summary in business language, prioritised remediation, retest |
+
+**The honest framing for interviews:** "CTFs build the methodology and enumeration discipline; the
+process wrapper — scoping, client comms, production safety, business-language reporting — is what I'd
+learn on the job. I practise the reporting half deliberately, because that's the part most CTF players
+skip." Scope discipline is the bridge: in [../../spectre](../../spectre) I halted enumeration at the
+agreed ethical boundary and documented what I chose *not* to do — the single most transferable habit.
+
+## 7. MITRE ATT&CK mapping approach
+
+Every writeup maps its steps to ATT&CK because it is the **bridge from offence to detection** — the
+same framework a SOC analyst uses to recognise the activity in logs (directly relevant to the
+SOC-analyst target role; see [../../sec-plus-notes](../../sec-plus-notes) Domain 4).
+
+How to map a step, consistently:
+1. **Identify the tactic** (the *why* / the adversary's goal): Initial Access, Execution, Privilege
+   Escalation, Credential Access, Lateral Movement, etc.
+2. **Pin the technique/sub-technique** (the *how*) to a specific ID — e.g. SSH brute force →
+   **T1110**, EternalBlue → **T1210**, token impersonation → **T1134.001**, unquoted/writable service
+   → **T1543.003 / T1574.009**, SUID/PATH privesc → **T1548.001 / T1574.007**.
+3. **Add the detection note** (the blue-team transfer): which log/telemetry would catch this step
+   (e.g. Windows Event 7045 for service creation, `auth.log` for SSH brute force). This is what makes
+   the mapping useful rather than decorative.
+4. **Map per-step, not per-box** — a single box touches several tactics; a one-line-per-box label
+   loses the chain.
+
+Pitfall to avoid: don't force an ID where none fits, and don't confuse a *tool* (nmap) with a
+*technique* (T1046 Network Service Discovery) — ATT&CK describes behaviour, not software.
+
+## 8. Writeup discipline — a writeup vs a tool dump
+
+A tool dump is "here are my commands and their output". A writeup is "here is how I *reasoned*". The
+difference is what an employer is actually buying. A good gauntlet writeup:
+
+- **Leads with reasoning, not commands.** Every command answers a stated question ("is SMB
+  exposed?"), and the output is interpreted, not just pasted.
+- **Documents the dead ends.** The ruled-out vsftpd decoy on *Lame*, the 403 on *spectre*'s
+  `/server-status` — recognising a rabbit hole quickly is itself a skill, and hiding failures makes
+  the work unreproducible.
+- **Explains vector choice.** "I chose the Samba path over distcc because it yields root in one step
+  with no privesc" beats silently running the winning exploit.
+- **Maps findings to a framework** (CWE for the weakness type, ATT&CK for the behaviour) so the work
+  connects to detection and remediation.
+- **Is honest about provenance.** Where a box is a study scaffold rather than an original solve, it's
+  labelled a **preparation stub** with no fabricated flag values. Under-claim and be trusted.
+- **Captures evidence to the §4 standard** (logs, named screenshots, hashes) so it's auditable.
+
+> Test for a good writeup: could a peer reproduce the solve *and* understand why each decision was
+> made, from the writeup alone? If yes, it's a writeup. If they only get a list of commands, it's a
+> dump.
