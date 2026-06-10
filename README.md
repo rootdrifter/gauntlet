@@ -59,7 +59,8 @@ prior knowledge.
 ### Writeup template
 
 Every writeup file follows this exact skeleton, committed as
-`<platform>/<machine>/README.md`:
+`writeups/<platform>-<machine>.md` (template at
+[templates/writeup-template.md](templates/writeup-template.md)):
 
 ```markdown
 # <Machine name> — <Platform>
@@ -118,13 +119,28 @@ Post-exploitation: `metasploit` (where appropriate), manual shell stabilisation
 
 ---
 
-## Status
+## Writeup index
 
-Writeups are added as challenges are completed. The repository is active — check commit
-history for recently added rooms.
+Seven structured writeups are in place. Each is honestly labelled: where a machine has not yet
+been solved under my own account, it is marked a **preparation stub** — a study scaffold built
+from publicly documented information, with no live flag values recorded. Stubs become full
+writeups as each box is worked.
 
-<!-- Writeups will appear here as subdirectories named by platform/machine -->
-<!-- e.g. tryhackme/mr-robot/, hackthebox/lame/ -->
+| Machine | Platform | Difficulty | OS | Attack path |
+|---------|----------|------------|-----|-------------|
+| [Blue](writeups/thm-blue.md) | TryHackMe | Easy | Windows | EternalBlue / MS17-010 → SMBv1 → SYSTEM → hashdump |
+| [Kenobi](writeups/thm-kenobi.md) | TryHackMe | Easy | Linux | SMB + NFS enum → ProFTPD mod_copy → SUID privesc |
+| [Steel Mountain](writeups/thm-steel-mountain.md) | TryHackMe | Easy | Windows | Rejetto HFS 2.3 RCE (CVE-2014-6287) → unquoted service path |
+| [Alfred](writeups/thm-alfred.md) | TryHackMe | Easy | Windows | Jenkins default creds → Groovy console RCE → token impersonation |
+| [Basic Pentesting](writeups/thm-basic-pentesting.md) | TryHackMe | Easy | Linux | SMB user disclosure → SSH brute-force → SUID + sudo privesc |
+| [Lame](writeups/htb-lame.md) | HackTheBox | Easy | Linux | Samba 3.0.20 usermap_script (CVE-2007-2447) → direct root |
+| [Jerry](writeups/htb-jerry.md) | HackTheBox | Easy | Windows | Tomcat Manager default creds → WAR deploy → SYSTEM |
+
+Methodology spine: [methodology/ctf-methodology.md](methodology/ctf-methodology.md) — enumeration
+discipline, OWASP→CTF mapping, privilege-escalation triage order, and evidence standards.
+
+The repository is active — new rooms are added as they are completed; check commit history for the
+most recent.
 
 ---
 
