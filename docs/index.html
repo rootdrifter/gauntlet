@@ -242,7 +242,7 @@
   <div class="stats-row">
     <div class="stat-cell">
       <span class="stat-value">5</span>
-      <span class="stat-label">Writeups complete</span>
+      <span class="stat-label">Methodology stubs</span>
     </div>
     <div class="stat-cell">
       <span class="stat-value">THM</span>
@@ -259,12 +259,16 @@
   </div>
 
   <div class="info-block">
-    <span class="blk-label">Methodology</span>
-    Every writeup documents the reasoning process, not just the commands. The format is
-    consistent: what was observed, what was inferred, what was tried, what failed, and
-    what worked. Failure documentation is deliberate — understanding why a technique did
-    not apply is as important as knowing when it does. This repository grows with each
-    completed challenge.
+    <span class="blk-label">Methodology First — What This Repository Is</span>
+    The deliverable here is <strong style="color:var(--green-dim)">method, not flags</strong>. Each
+    entry documents how a target is approached — what was observed, what was inferred, what was
+    tried, what failed, and what worked — because the reasoning is the part that transfers to a real
+    engagement. The current five entries are <strong style="color:var(--green-dim)">preparation
+    stubs</strong>: structured from publicly documented information about well-known retired rooms,
+    they capture the attack path and methodology without reproducing live flag values or claiming an
+    original solve. They are study scaffolds that become full writeups as each room is worked under
+    account. Failure paths are documented deliberately — understanding why a technique did not apply
+    matters as much as knowing when it does.
   </div>
 
   <div class="section-break"><span>Platforms</span></div>
@@ -288,12 +292,12 @@
 
   <div class="challenge-grid">
 
-    <div class="challenge-card complete">
+    <div class="challenge-card stub">
       <div class="challenge-head">
         <span class="challenge-name">Blue</span>
         <span class="platform-tag tag-thm">THM</span>
         <span class="diff-tag diff-easy">Easy</span>
-        <span class="status-dot dot-complete">Stub</span>
+        <span class="status-dot dot-stub">Stub</span>
       </div>
       <div class="challenge-body">
         <p class="attack">EternalBlue (MS17-010) → SMBv1 → SYSTEM shell → Hashdump</p>
@@ -305,12 +309,12 @@
       </div>
     </div>
 
-    <div class="challenge-card complete">
+    <div class="challenge-card stub">
       <div class="challenge-head">
         <span class="challenge-name">Kenobi</span>
         <span class="platform-tag tag-thm">THM</span>
         <span class="diff-tag diff-easy">Easy</span>
-        <span class="status-dot dot-complete">Stub</span>
+        <span class="status-dot dot-stub">Stub</span>
       </div>
       <div class="challenge-body">
         <p class="attack">SMB + NFS enumeration → ProFTPD path traversal → SUID privilege escalation</p>
@@ -323,12 +327,12 @@
       </div>
     </div>
 
-    <div class="challenge-card complete">
+    <div class="challenge-card stub">
       <div class="challenge-head">
         <span class="challenge-name">Steel Mountain</span>
         <span class="platform-tag tag-thm">THM</span>
         <span class="diff-tag diff-easy">Easy</span>
-        <span class="status-dot dot-complete">Stub</span>
+        <span class="status-dot dot-stub">Stub</span>
       </div>
       <div class="challenge-body">
         <p class="attack">HFS 2.3 RCE → CVE-2014-6287 → msfvenom shell → PowerUp unquoted service path PE</p>
@@ -341,12 +345,12 @@
       </div>
     </div>
 
-    <div class="challenge-card complete">
+    <div class="challenge-card stub">
       <div class="challenge-head">
         <span class="challenge-name">Alfred</span>
         <span class="platform-tag tag-thm">THM</span>
         <span class="diff-tag diff-easy">Easy</span>
-        <span class="status-dot dot-complete">Stub</span>
+        <span class="status-dot dot-stub">Stub</span>
       </div>
       <div class="challenge-body">
         <p class="attack">Jenkins default credentials → Groovy script console RCE → token impersonation</p>
@@ -359,12 +363,12 @@
       </div>
     </div>
 
-    <div class="challenge-card complete">
+    <div class="challenge-card stub">
       <div class="challenge-head">
         <span class="challenge-name">Basic Pentesting</span>
         <span class="platform-tag tag-thm">THM</span>
         <span class="diff-tag diff-easy">Easy</span>
-        <span class="status-dot dot-complete">Stub</span>
+        <span class="status-dot dot-stub">Stub</span>
       </div>
       <div class="challenge-body">
         <p class="attack">SMB enumeration → Samba username disclosure → SSH brute-force → SUID + sudo PE</p>
@@ -414,6 +418,22 @@
     </div>
   </div>
 
+  <div class="section-break"><span>What CTF Practice Maps To</span></div>
+
+  <p>CTF categories are not abstract puzzles — each one rehearses a capability that a security role
+  uses in the field. This is how consistent practice translates into job-relevant skill.</p>
+
+  <table class="data-table">
+    <tr><th>CTF capability</th><th>Real-world equivalent</th><th>Role</th></tr>
+    <tr><td>Service enumeration &amp; version triage</td><td>External attack-surface assessment; vulnerability validation</td><td>Pentester · SOC L2</td></tr>
+    <tr><td>Web exploitation (SQLi, LFI, SSTI)</td><td>Application security testing; OWASP-aligned review</td><td>AppSec · Pentester</td></tr>
+    <tr><td>Privilege escalation (SUID / sudo / cron / token)</td><td>Post-compromise impact assessment; hardening review</td><td>Pentester · Red Team</td></tr>
+    <tr><td>SMB / Active Directory enumeration</td><td>Internal network assessment; lateral-movement analysis</td><td>Red Team · IR</td></tr>
+    <tr><td>Reading exploit code &amp; mapping CVEs</td><td>Threat intelligence; exploit triage; patch prioritisation</td><td>Threat Intel · SOC</td></tr>
+    <tr><td>Evidence logging &amp; SHA-256 integrity</td><td>Chain-of-custody discipline; defensible reporting</td><td>DFIR · Consultant</td></tr>
+    <tr><td>Documenting failed paths</td><td>Reproducible methodology; report writing</td><td>Every security role</td></tr>
+  </table>
+
   <div class="section-break"><span>Tool Stack</span></div>
 
   <table class="data-table">
@@ -432,10 +452,12 @@
     <span class="blk-label">GitHub</span>
     Full writeups, methodology notes, and templates:
     <span style="font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--green)">github.com/rootdrifter/gauntlet</span>
+    — one repository in the <span style="font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--green)">github.com/rootdrifter</span> portfolio.
   </div>
 
   <footer>
     <span>gauntlet — ctf writeups — tryhackme + hackthebox</span>
+    <span>rootdrifter · security-cleared</span>
     <span>rev 2026-06-10</span>
   </footer>
 
