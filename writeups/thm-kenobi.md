@@ -58,6 +58,18 @@ Expected exposed surface (confirm on completion):
 
 [Paste trimmed scan output on completion.]
 
+**nmap flag rationale:**
+- `-p-` — all 65,535 TCP ports. Essential here: the solve *chains* services (FTP + SMB + NFS + SSH),
+  so missing any one open port loses the path.
+- `-sV` — version detection. Pins `ProFTPD 1.3.5` (the `mod_copy` foothold) and the rpcbind/NFS
+  presence; the ProFTPD version is the load-bearing fact.
+- `-sC` — default scripts; `nfs-showmount` and `rpcinfo` hints surface the export early.
+- `-oA nmap/kenobi` — preserve the multi-service surface for the chaining logic.
+
+**What to look for in the scan:** a *combination* — ProFTPD 1.3.5 on 21, Samba on 139/445, and
+rpcbind (111) implying NFS (2049). No single service is the answer; the win is recognising that the
+FTP bug can write to a path the NFS export will let you read. Map the connections, not just the ports.
+
 ## 2. Enumeration
 
 ```
@@ -75,9 +87,16 @@ showmount -e 10.x.x.x
 - `showmount -e` reveals a **writable / mountable NFS export** (e.g. `/var`) — this is where the
   `mod_copy` step will drop the key. [Record share listing + export path on completion.]
 
+**What to look for after SMB/NFS enumeration:** two specific facts that make the chain possible.
+From Samba: the **disclosed path to `id_rsa`** (the share leaks the user's home/SSH key location).
+From `showmount -e`: a **mountable export whose path overlaps a directory ProFTPD can write to**
+(e.g. `/var`). The exploit only works if the FTP `CPTO` destination sits *inside* the NFS export —
+the enumeration is what confirms those two paths line up before you spend time on the copy.
+
 ## 3. Exploitation
 
-**Step A — copy the SSH private key with ProFTPD `mod_copy` (unauthenticated):**
+**Step A — copy the SSH private key with ProFTPD `mod_copy` (unauthenticated)
+[ATT&CK T1190 — Exploit Public-Facing Application; T1552.004 — Unsecured Credentials: Private Keys]:**
 
 ```
 nc 10.x.x.x 21
@@ -94,7 +113,8 @@ cp /mnt/kenobiNFS/tmp/id_rsa .
 chmod 600 id_rsa
 ```
 
-**Step C — log in over SSH with the stolen key:**
+**Step C — log in over SSH with the stolen key
+[ATT&CK T1021.004 — Remote Services: SSH]:**
 
 ```
 ssh -i id_rsa kenobi@10.x.x.x
@@ -110,7 +130,8 @@ strings /usr/bin/menu                 # shows it calls e.g. `curl`/`ifconfig` by
 ```
 
 - `/usr/bin/menu` is SUID-root and invokes system binaries by **relative name**, so a hijacked
-  `PATH` makes it run attacker code as root:
+  `PATH` makes it run attacker code as root **[ATT&CK T1574.007 — Hijack Execution Flow: Path
+  Interception by PATH Environment Variable; T1548.001 — Abuse Elevation Control: Setuid/Setgid]**:
 
 ```
 cd /tmp
@@ -153,7 +174,47 @@ export PATH=/tmp:$PATH
 - **Blue-team transfer:** detect via anomalous FTP `SITE CPFR/CPTO` commands, unexpected NFS mounts,
   and SUID execution with a tampered environment.
 
-## 8. References
+## 8. Defender perspective — logs & detection
+
+What this service-chaining attack looks like from a monitored SOC. The chain crosses four services,
+so detection is multi-source — a good lesson in correlation. (See
+[../methodology/ctf-methodology.md §7](../methodology/ctf-methodology.md).)
+
+**Log artefacts generated:**
+- **FTP/ProFTPD logs** (`/var/log/proftpd/proftpd.log`): unauthenticated `SITE CPFR` / `SITE CPTO`
+  commands — `mod_copy` operations against a path under a user's `.ssh/` are almost never
+  legitimate; the `CPFR ... /id_rsa` target is the smoking gun.
+- **NFS / rpc logs:** a new **mount** of an export from an unexpected client IP; on the server,
+  `rpc.mountd` logs the mount request. An external host mounting `/var` is anomalous.
+- **auth.log / `sshd`:** a **public-key SSH login** for `kenobi` from the attacker IP shortly after
+  the FTP copy — the timing correlation (FTP copy → NFS mount → SSH login, same source, seconds
+  apart) is the detection, more than any single event.
+- **Privesc:** the SUID `/usr/bin/menu` executing with a **tampered `PATH`** — auditd `execve`
+  records show `menu` (UID 0) spawning `/tmp/curl` or `/bin/sh`; a root-SUID binary resolving a
+  command out of `/tmp` is the indicator.
+
+**Example detection logic (correlation, Splunk-style):**
+```
+(index=ftp "SITE CPFR" OR "SITE CPTO")
+| transaction src_ip maxspan=5m
+  with [search index=nfs "mount request"]
+  with [search index=os sshd "Accepted publickey"]
+| where mvcount(src_ip)=1
+```
+Plus the host privesc rule (auditd/Sigma): `parent=/usr/bin/menu AND child_path startswith /tmp`.
+
+**Why it fires:** each step alone could be explained away, but the *sequence from one source IP in
+minutes* (unauth file copy → NFS mount → key-based SSH) has no benign equivalent — this is the
+correlation work a SOC does. The SUID-from-`/tmp` execution is independently high-fidelity. Maps to
+**ATT&CK T1190 / T1552.004 / T1021.004 / T1574.007 / T1548.001**.
+
+**Defensive controls:** patch ProFTPD (disable `mod_copy`); restrict NFS exports with
+`root_squash` and host allow-lists; never world-readable private keys; audit SUID binaries and
+ensure they call commands by absolute path; alert on SUID processes resolving binaries from
+writable directories.
+
+## 9. References
 
 - ProFTPD mod_copy CVE-2015-3306 (verify scope before citing).
 - GTFOBins — SUID / PATH-interception abuse patterns.
+- MITRE ATT&CK T1190, T1552.004, T1021.004, T1574.007, T1548.001.

