@@ -8,6 +8,8 @@
      Scanline overlay retained. Dense challenge card grid layout appropriate for a scoreboard.
      Active status indicator in header — this is a living document.
      Footer: gauntlet + 2026-06-10.
+     CANONICAL TOKENS (Fable unification 2026-06-10): structural tokens + scanline
+     standardised to the portfolio base; green/amber/red CTF accents retained.
 -->
 <html lang="en">
 <head>
@@ -17,11 +19,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #060a08;
-    --surface: #090d0b;
-    --surface2: #0c1210;
-    --border: #121e18;
-    --border-bright: #1a2e22;
+    --bg: #090d12;
+    --surface: #0d1520;
+    --surface2: #101a28;
+    --border: #1a2a3a;
+    --border-bright: #2a3f55;
     --green: #00e87a;
     --green-dim: #00703b;
     --green-pale: #003d20;
@@ -29,10 +31,10 @@
     --amber-dim: #7a5200;
     --red: #e83838;
     --red-dim: #5a1818;
-    --text: #a0c0a8;
-    --text-bright: #d0e8d4;
-    --muted: #38503e;
-    --code-bg: #050807;
+    --text: #c8d8e8;
+    --text-bright: #e8f2fb;
+    --muted: #4a6a7a;
+    --code-bg: #060a0f;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,7 +52,7 @@
     content: '';
     position: fixed;
     inset: 0;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,232,122,0.012) 2px, rgba(0,232,122,0.012) 4px);
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px);
     pointer-events: none;
     z-index: 100;
   }
