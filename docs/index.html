@@ -228,6 +228,61 @@
     letter-spacing: 0.15em; display: flex; justify-content: space-between; text-transform: uppercase;
   }
 
+  /* Skills radar (SVG) */
+  .radar-wrap {
+    display: grid;
+    grid-template-columns: minmax(260px, 420px) 1fr;
+    gap: 1.5rem;
+    align-items: center;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 1.25rem 1.4rem;
+    margin: 1rem 0;
+  }
+  .radar-svg { width: 100%; height: auto; display: block; }
+  .radar-grid-line { fill: none; stroke: var(--border); stroke-width: 1; }
+  .radar-axis { stroke: var(--border-bright); stroke-width: 1; }
+  .radar-shape {
+    fill: rgba(0,232,122,0.14);
+    stroke: var(--green);
+    stroke-width: 1.5;
+    transform-origin: 150px 150px;
+    transform: scale(0);
+    transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .radar-shape.in { transform: scale(1); }
+  .radar-dot { fill: var(--green); }
+  .radar-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    fill: var(--muted);
+    text-transform: uppercase;
+  }
+  .radar-notes { font-size: 0.82rem; }
+  .radar-notes .rn-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    display: block;
+    margin-bottom: 0.6rem;
+  }
+  .radar-notes ul { list-style: none; margin: 0; padding: 0; }
+  .radar-notes li { margin-bottom: 0.45rem; color: var(--text); line-height: 1.5; }
+  .radar-notes li strong {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--text-bright);
+    font-weight: 400;
+    letter-spacing: 0.06em;
+  }
+  .radar-notes .rn-caveat { color: var(--muted); font-size: 0.76rem; margin-top: 0.7rem; }
+  @media (max-width: 700px) {
+    .radar-wrap { grid-template-columns: 1fr; }
+  }
+
   p { margin-bottom: 0.8rem; }
   p:last-child { margin-bottom: 0; }
 
@@ -335,7 +390,7 @@
 
   <div class="stats-row">
     <div class="stat-cell">
-      <span class="stat-value">5</span>
+      <span class="stat-value">7</span>
       <span class="stat-label">Methodology stubs</span>
     </div>
     <div class="stat-cell">
@@ -357,7 +412,7 @@
     The deliverable here is <strong style="color:var(--green-dim)">method, not flags</strong>. Each
     entry documents how a target is approached — what was observed, what was inferred, what was
     tried, what failed, and what worked — because the reasoning is the part that transfers to a real
-    engagement. The current five entries are <strong style="color:var(--green-dim)">preparation
+    engagement. The current seven entries are <strong style="color:var(--green-dim)">preparation
     stubs</strong>: structured from publicly documented information about well-known retired rooms,
     they capture the attack path and methodology without reproducing live flag values or claiming an
     original solve. They are study scaffolds that become full writeups as each room is worked under
@@ -521,6 +576,51 @@
     in README — from initial recon to root, with failure paths documented alongside successes.
   </div>
 
+  <div class="section-break"><span>Coverage Radar &mdash; Honest Self-Assessment</span></div>
+
+  <div class="radar-wrap">
+    <svg class="radar-svg" viewBox="0 0 300 300" role="img"
+         aria-label="Radar chart of CTF category coverage: network 4 of 5, privilege escalation 3.5, web 3, crypto 1, forensics 0.5, pwn 0.5">
+      <polygon class="radar-grid-line" points="150.0,129.0 168.2,139.5 168.2,160.5 150.0,171.0 131.8,160.5 131.8,139.5"/>
+      <polygon class="radar-grid-line" points="150.0,108.0 186.4,129.0 186.4,171.0 150.0,192.0 113.6,171.0 113.6,129.0"/>
+      <polygon class="radar-grid-line" points="150.0,87.0 204.6,118.5 204.6,181.5 150.0,213.0 95.4,181.5 95.4,118.5"/>
+      <polygon class="radar-grid-line" points="150.0,66.0 222.7,108.0 222.7,192.0 150.0,234.0 77.3,192.0 77.3,108.0"/>
+      <polygon class="radar-grid-line" points="150.0,45.0 240.9,97.5 240.9,202.5 150.0,255.0 59.1,202.5 59.1,97.5"/>
+      <line class="radar-axis" x1="150.0" y1="150.0" x2="150.0" y2="45.0"/>
+      <line class="radar-axis" x1="150.0" y1="150.0" x2="240.9" y2="97.5"/>
+      <line class="radar-axis" x1="150.0" y1="150.0" x2="240.9" y2="202.5"/>
+      <line class="radar-axis" x1="150.0" y1="150.0" x2="150.0" y2="255.0"/>
+      <line class="radar-axis" x1="150.0" y1="150.0" x2="59.1" y2="202.5"/>
+      <line class="radar-axis" x1="150.0" y1="150.0" x2="59.1" y2="97.5"/>
+      <polygon class="radar-shape" id="radarShape" points="150.0,87.0 222.7,108.0 168.2,160.5 150.0,160.5 140.9,155.2 86.3,113.2"/>
+      <circle class="radar-dot" cx="150.0" cy="87.0" r="3"/>
+      <circle class="radar-dot" cx="222.7" cy="108.0" r="3"/>
+      <circle class="radar-dot" cx="168.2" cy="160.5" r="3"/>
+      <circle class="radar-dot" cx="150.0" cy="160.5" r="3"/>
+      <circle class="radar-dot" cx="140.9" cy="155.2" r="3"/>
+      <circle class="radar-dot" cx="86.3" cy="113.2" r="3"/>
+      <text class="radar-label" x="150.0" y="27.2" text-anchor="middle">WEB</text>
+      <text class="radar-label" x="256.4" y="88.6" text-anchor="start">NETWORK</text>
+      <text class="radar-label" x="256.4" y="215.4" text-anchor="start">CRYPTO</text>
+      <text class="radar-label" x="150.0" y="276.9" text-anchor="middle">FORENSICS</text>
+      <text class="radar-label" x="43.6" y="215.4" text-anchor="end">PWN</text>
+      <text class="radar-label" x="43.6" y="88.6" text-anchor="end">PRIVESC</text>
+    </svg>
+    <div class="radar-notes">
+      <span class="rn-title">// What the seven stubs actually cover</span>
+      <ul>
+        <li><strong>NETWORK 4/5</strong> &mdash; SMB/NFS enumeration and exploitation across four machines (Blue, Kenobi, Basic Pentesting, Lame).</li>
+        <li><strong>PRIVESC 3.5/5</strong> &mdash; SUID, sudo abuse, unquoted service paths, token impersonation.</li>
+        <li><strong>WEB 3/5</strong> &mdash; Jenkins console RCE, HFS CVE-2014-6287, Tomcat WAR deploy.</li>
+        <li><strong>CRYPTO 1/5</strong> &mdash; hash dumping and cracking only (hashdump &rarr; john/hashcat).</li>
+        <li><strong>FORENSICS 0.5/5</strong> &mdash; evidence-logging discipline, no dedicated forensics challenges yet.</li>
+        <li><strong>PWN 0.5/5</strong> &mdash; tooling familiarity (gdb, ghidra); no completed binary-exploitation writeups yet.</li>
+      </ul>
+      <p class="rn-caveat">Scores reflect the current stub set, not aspiration &mdash; the low axes
+      are the practice roadmap, and the chart gets redrawn as entries land.</p>
+    </div>
+  </div>
+
   <div class="section-break"><span>Methodology Notes</span></div>
 
   <div class="method-grid">
@@ -619,6 +719,27 @@
     var open = l.classList.toggle('open');
     t.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
+})();
+</script>
+<script>
+(function () {
+  var shape = document.getElementById('radarShape');
+  if (!shape) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    shape.style.transition = 'none';
+    shape.classList.add('in');
+    return;
+  }
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { shape.classList.add('in'); io.disconnect(); }
+      });
+    }, { threshold: 0.4 });
+    io.observe(shape.closest('.radar-wrap'));
+  } else {
+    shape.classList.add('in');
+  }
 })();
 </script>
 </body>
