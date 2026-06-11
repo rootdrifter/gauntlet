@@ -197,6 +197,22 @@ service → full compromise, but extremely noisy" lesson. Maps to **ATT&CK T1210
 **Defensive controls:** disable SMBv1 entirely; apply MS17-010; require SMB signing; segment and
 firewall 445 from untrusted networks; deploy Sysmon with LSASS-access and CreateRemoteThread rules.
 
+## Exam relevance — Sec+ SY0-701
+
+Why this room is hands-on revision for the certificate, not a detour from it:
+
+| SY0-701 objective | How Blue makes it concrete |
+|-------------------|----------------------------|
+| **2.3** Vulnerability types | A legacy, unpatched OS service (SMBv1 / MS17-010) is the textbook "vulnerable / legacy software" the exam asks you to recognise. |
+| **2.4** Indicators of malicious activity | The §8 IoCs — anomalous SMBv1 traffic, 4688 process creation, LSASS/SAM access — are exactly the application/network attack indicators the exam tests. |
+| **2.5 / 4.1** Mitigation & hardening | Disable SMBv1, apply MS17-010, require SMB signing, segment 445 — the patch-management and protocol-hardening answers, seen from the attacker's side. |
+| **4.4** Vulnerability management | The `smb-vuln-ms17-010` NSE script is a vulnerability *scan*; mapping the verdict to a CVE is the identify→prioritise→remediate cycle. |
+| **1.4 / 2.4** Password attacks | The offline NTLM crack (`john`/`hashcat` vs rockyou) is the exam's "offline brute-force / password attack" made real. |
+
+**Interview line:** "I run rooms like Blue specifically to turn Sec+ objectives into muscle memory —
+exploiting MS17-010 is how I *understand* why the exam treats patch management and legacy-protocol
+disablement as non-negotiable, instead of just memorising it."
+
 ## 9. References
 
 - MS17-010 / EternalBlue (verify exact CVE before citing).

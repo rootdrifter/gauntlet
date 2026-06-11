@@ -207,6 +207,19 @@ T1190 / T1059 / T1543.003 / T1574.009**.
 binaries and their parent directories; quote all service paths; run web apps as low-privilege
 accounts; alert on Event 7045 and on service-binary file modifications.
 
+## Exam relevance — Sec+ SY0-701
+
+| SY0-701 objective | How Steel Mountain makes it concrete |
+|-------------------|--------------------------------------|
+| **2.3** Vulnerability types | Vulnerable software (HFS 2.3 / Rejetto RCE) *and* a service misconfiguration (unquoted service path) — two distinct Domain 2 vulnerability categories in one box. |
+| **2.4** Indicators of malicious activity | The RCE payload and the spawned reverse shell are the application-attack indicators the exam asks you to spot. |
+| **2.5 / 4.1** Mitigation & hardening | Patch the vulnerable service; quote service paths and fix weak permissions — the configuration-management answers, from the attacker's side. |
+| **4.x** Privilege escalation | PowerUp's discovery of the unquoted/weak-permission service is automated privesc enumeration — the practical form of the exam's host-hardening material. |
+
+**Interview line:** "Steel Mountain is two exam concepts at once — a CVE in vulnerable software and an
+unquoted-service-path misconfiguration — which is why I use it to revise why Domain 2 separates
+'vulnerable software' from 'misconfiguration'."
+
 ## 8. References
 
 - Rejetto HFS 2.3 CVE-2014-6287 (verify before citing).

@@ -213,6 +213,19 @@ enforce account lockout; restrict the Script Console to admins on a trusted netw
 a low-privilege account *without* `SeImpersonatePrivilege`; enable the Audit Trail plugin and ship
 it to the SIEM.
 
+## Exam relevance — Sec+ SY0-701
+
+| SY0-701 objective | How Alfred makes it concrete |
+|-------------------|------------------------------|
+| **2.4** Indicators / password attacks | Default credentials (`admin:admin`) on an exposed admin console — the most-tested "you had one job" weakness in Domain 2. |
+| **2.3** Vulnerability types | An exposed management interface (Jenkins Script Console) is the "unnecessary service / misconfiguration exposed" vulnerability class. |
+| **1.2 / 4.6** AAA & IAM | Windows token impersonation (`incognito`) defeats authentication by stealing an existing identity — the attacker's view of why the exam stresses access tokens and privilege. |
+| **5.x** Account / config policy | Changing default credentials and least-privilege service accounts are the governance controls Domain 5 asks about. |
+
+**Interview line:** "Alfred turns the exam's 'change default credentials' bullet into something
+visceral — admin:admin on a CI server is full RCE, and the token-impersonation privesc is access
+control taught from the attacker's chair."
+
 ## 9. References
 
 - Jenkins Script Console RCE technique (configuration exposure, not a single CVE).

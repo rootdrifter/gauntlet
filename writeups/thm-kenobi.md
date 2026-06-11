@@ -213,6 +213,18 @@ correlation work a SOC does. The SUID-from-`/tmp` execution is independently hig
 ensure they call commands by absolute path; alert on SUID processes resolving binaries from
 writable directories.
 
+## Exam relevance — Sec+ SY0-701
+
+| SY0-701 objective | How Kenobi makes it concrete |
+|-------------------|------------------------------|
+| **2.3** Vulnerability types | A vulnerable service version (ProFTPd `mod_copy`) *and* a misconfiguration (NFS `no_root_squash`) — the exam's "vulnerable software" and "misconfiguration" categories side by side. |
+| **2.4** Indicators of malicious activity | Service enumeration and the file-write→privesc chain are the recon and post-exploitation indicators the exam expects you to recognise. |
+| **3.1 / 4.1** Secure protocols & hardening | FTP/SMB/NFS exposed without controls is the case study for "use secure protocols, restrict exports, least privilege". |
+| **4.x** Privilege escalation & permissions | The SUID-binary path is the hands-on form of the exam's file-permission / least-privilege material. |
+
+**Interview line:** "Kenobi is how I revise the misconfiguration half of Domain 2 — NFS `no_root_squash`
+and a SUID binary are abstract bullet points until you've actually used them to get root."
+
 ## 9. References
 
 - ProFTPD mod_copy CVE-2015-3306 (verify scope before citing).
