@@ -177,6 +177,49 @@ T1078 / T1505.003 / T1059**.
 credentials; run Tomcat as a low-privilege service account (so RCE ≠ SYSTEM); restrict deploy
 endpoints to localhost; alert on new context deployments.
 
+### Wazuh detection rule (→ [watchtower](../../watchtower))
+
+The Splunk/Sysmon logic translates directly to Wazuh rules on the Tomcat access log plus the
+process-spawn telemetry:
+
+```xml
+<group name="tomcat,web,windows,attack,">
+  <!-- Stage 1: WAR deploy via the Manager app -->
+  <rule id="100480" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <url type="pcre2">/manager/(text/deploy|html/upload)|\.war$</url>
+    <description>Tomcat Manager WAR deployment — possible RCE (T1190/T1505.003)</description>
+    <mitre><id>T1190</id><id>T1505.003</id></mitre>
+  </rule>
+  <!-- Stage 2: Tomcat/java spawning a command interpreter = web-shell execution -->
+  <rule id="100481" level="13">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">\\(Tomcat\d*|java)\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">\\(cmd|powershell)\.exe$</field>
+    <description>Tomcat spawned a shell — web-shell execution (T1059)</description>
+    <mitre><id>T1059</id></mitre>
+  </rule>
+</group>
+```
+**Validation:** in the lab, brute the Manager creds, deploy a test WAR, and confirm 100480; trigger
+the shell and confirm 100481. A frequency rule on repeated 401s to `/manager/html` before a 200
+adds the **T1110** brute-force signal. Sub-techniques: **T1190**, **T1078** (default creds),
+**T1505.003** (web shell), **T1059** (command execution).
+
+## Exam relevance — Sec+ SY0-701
+
+| SY0-701 objective | How Jerry makes it concrete |
+|-------------------|------------------------------|
+| **1.2 / 4.6** Default credentials | `tomcat:tomcat`-class defaults are the textbook "default credential" weakness — exploited, not just recited. |
+| **2.3** Vulnerability types — misconfiguration | An exposed Manager app with unchanged defaults is the "misconfiguration / weak configuration" the exam separates from a CVE. |
+| **2.2 / 2.4** Application attacks & indicators | WAR-upload RCE + the failed-then-successful Basic-auth pattern are the application-attack indicators (§8). |
+| **4.1** Hardening | Remove/firewall Manager, rotate defaults, low-priv service account — least-privilege + attack-surface reduction from the attacker's side. |
+| **3.1** Least privilege / blast radius | Tomcat as SYSTEM means RCE = full host; a low-priv service account would have contained it — the exam's least-privilege rationale, demonstrated. |
+
+**Interview line:** "Jerry is one default password becoming SYSTEM in three steps — it's why I treat
+credential hygiene and least-privilege service accounts as the controls that would have broken the
+whole chain."
+
 ## 9. References
 
 - Apache Tomcat Manager documentation — deployment and `tomcat-users.xml` defaults.

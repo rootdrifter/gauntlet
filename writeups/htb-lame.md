@@ -174,6 +174,49 @@ the detection signal are the same event. Maps to **ATT&CK T1190 / T1059.004**.
 **Defensive controls:** patch Samba (the only real fix); run `smbd` least-privileged; restrict
 139/445 to trusted networks; alert on shell metacharacters in any authentication field.
 
+### Wazuh detection rule (→ [watchtower](../../watchtower))
+
+The Sigma logic maps to a Wazuh rule on auditd `execve` records — `smbd` as the parent of a shell is
+near-zero false positive:
+
+```xml
+<group name="auditd,samba,attack,">
+  <!-- smbd (the SMB daemon) spawning an interactive shell = usermap_script injection -->
+  <rule id="100490" level="14">
+    <if_group>audit_command</if_group>
+    <field name="audit.exe" type="pcre2">/(sh|bash|nc|python\d?)$</field>
+    <field name="audit.ppid_exe" type="pcre2">/smbd$</field>
+    <description>smbd spawned a shell — Samba usermap_script injection CVE-2007-2447 (T1190/T1059.004)</description>
+    <mitre><id>T1190</id><id>T1059.004</id></mitre>
+  </rule>
+  <!-- Companion: shell metacharacters in an SMB auth username -->
+  <rule id="100491" level="12">
+    <decoded_as>samba</decoded_as>
+    <regex type="pcre2">user(name)?=.*[`/].*nohup|/=</regex>
+    <description>Shell metacharacters in SMB username field — injection attempt (T1190)</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+</group>
+```
+**Validation:** enable auditd `execve` (`-a exit,always -F arch=b64 -S execve`), run the manual
+usermap_script exploit, and confirm 100490 fires at level 14. Because the malicious behaviour *is*
+the detection signal, precision is high. Sub-techniques: **T1190** (exploit public-facing app),
+**T1059.004** (Unix shell).
+
+## Exam relevance — Sec+ SY0-701
+
+| SY0-701 objective | How Lame makes it concrete |
+|-------------------|-----------------------------|
+| **2.2 / 2.3** Injection & vulnerable software | Command injection in an EOL Samba (3.0.20) is both "injection attack" and "legacy/unpatched software" in one box. |
+| **2.4** Indicators of malicious activity | `smbd` spawning `/bin/sh` and metacharacters in a username are exactly the §2.4 indicators the exam tests. |
+| **2.5 / 4.1** Mitigations & hardening | Patch (the only real fix), least-privilege the daemon, segment 139/445 — patch-management + service-hardening from the attacker's side. |
+| **3.1** Least privilege / blast radius | `smbd` running as root means injection = instant root; least privilege would have contained it. |
+| **4.4 / 4.8** Monitoring & forensics | The near-zero-FP auditd rule is a detection-engineering case study; the §8 artefacts are the forensic trail. |
+
+**Interview line:** "Lame is why I argue for patching EOL software *and* least-privileging daemons —
+a single unpatched Samba running as root is root access in one request, and the detection for it is
+trivially high-fidelity if you're collecting execve."
+
 ## 9. References
 
 - CVE-2007-2447 — Samba `username map script` command injection (verify scope before citing).

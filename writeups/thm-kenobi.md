@@ -225,6 +225,34 @@ writable directories.
 **Interview line:** "Kenobi is how I revise the misconfiguration half of Domain 2 — NFS `no_root_squash`
 and a SUID binary are abstract bullet points until you've actually used them to get root."
 
+### Wazuh detection rule (→ [watchtower](../../watchtower))
+
+Two signals: the ProFTPD `mod_copy` file-write (FTP log) and the SUID-binary privesc, which Wazuh's
+**syscheck (FIM)** is purpose-built to catch:
+
+```xml
+<group name="proftpd,ftp,fim,attack,">
+  <!-- Stage 1: ProFTPD SITE CPFR/CPTO arbitrary copy (mod_copy) -->
+  <rule id="100460" level="12">
+    <decoded_as>proftpd</decoded_as>
+    <regex type="pcre2">SITE\s+(CPFR|CPTO)</regex>
+    <description>ProFTPD mod_copy SITE CPFR/CPTO — arbitrary file write (T1190)</description>
+    <mitre><id>T1190</id></mitre>
+  </rule>
+  <!-- Stage 2: FIM detects a new/changed SUID-root binary used for privesc -->
+  <rule id="100461" level="13">
+    <if_group>syscheck</if_group>
+    <field name="file" type="pcre2">^/(usr/)?bin/|^/opt/</field>
+    <description>New/changed file in a binary path — check for SUID privesc (T1548.001/T1574.007)</description>
+    <mitre><id>T1548.001</id><id>T1574.007</id></mitre>
+  </rule>
+</group>
+```
+**Validation:** enable `<syscheck>` on `/bin`,`/usr/bin` with `report_changes`; perform the mod_copy
+write and the SUID privesc; confirm both rules fire. Sub-techniques: **T1190** (exploit public-facing
+app), **T1548.001** (setuid abuse), **T1574.007** (PATH interception), **T1552.004** (private SSH key
+loot).
+
 ## 9. References
 
 - ProFTPD mod_copy CVE-2015-3306 (verify scope before citing).

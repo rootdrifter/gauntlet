@@ -213,6 +213,27 @@ Why this room is hands-on revision for the certificate, not a detour from it:
 exploiting MS17-010 is how I *understand* why the exam treats patch management and legacy-protocol
 disablement as non-negotiable, instead of just memorising it."
 
+### Wazuh detection rule (→ [watchtower](../../watchtower))
+
+The Sigma/IDS logic above translates to a Wazuh custom rule on the Sysmon post-exploitation stage
+(the SMBv1 network stage is better caught by an inline IDS feeding Wazuh):
+
+```xml
+<!-- Log source: Windows endpoint + Sysmon, shipped via the Wazuh agent -->
+<group name="windows,sysmon,attack,eternalblue,">
+  <rule id="100410" level="13">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">\\(services|spoolsv|lsass)\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">\\(cmd|powershell)\.exe$</field>
+    <description>EternalBlue post-ex: SYSTEM service spawned a shell (T1210/T1055)</description>
+    <mitre><id>T1210</id><id>T1055</id></mitre>
+  </rule>
+</group>
+```
+**Validation:** detonate `ms17_010_eternalblue` in the lab; confirm the rule fires at level 13 and
+that a CreateRemoteThread (Sysmon Event 8) alert accompanies the `migrate` step. Sub-techniques:
+**T1210**, **T1055.012** (process hollowing on migrate), **T1003.002** (SAM dump).
+
 ## 9. References
 
 - MS17-010 / EternalBlue (verify exact CVE before citing).
