@@ -1,20 +1,32 @@
 # gauntlet
 
-CTF writeups from TryHackMe and HackTheBox. Methodology-first — each writeup documents the
-reasoning process, not just the commands. Updated as rooms and challenges are completed.
+**Active CTF practice that connects offensive technique to defensive detection.** Methodology-first
+TryHackMe and HackTheBox writeups — every box is worked *and* turned into the question a SOC analyst
+actually asks: "what log would have caught this, and what rule fires?" Each writeup now carries a
+box-specific **Wazuh detection rule** that feeds directly into the [watchtower](../watchtower) SIEM
+lab. Updated as rooms are completed.
 
 ---
 
 ## Overview
 
-Capture the Flag competitions provide controlled, legally-authorised environments for practising
-offensive security techniques against machines configured to be vulnerable. This repository
-collects writeups for completed challenges, with an emphasis on transferable methodology rather
-than solution shortcuts.
+This repository is the offensive half of a deliberate offence→detection loop. CTF competitions give
+controlled, legally-authorised environments for practising offensive techniques against intentionally
+vulnerable machines; the writeups here capture the *reasoning* — what was observed, inferred, tried,
+ruled out, and what finally worked — and then **cross the bridge to the blue team**: each attack step
+is mapped to MITRE ATT&CK and paired with the detection logic (Event IDs, auditd/Sysmon, and a Wazuh
+rule sketch) that would surface it in a monitored estate.
 
-The format is consistent across all writeups: what was observed, what was inferred, what was
-tried, what failed, and what worked. The failure documentation is deliberate — understanding
-why a technique did not apply is as important as knowing when it does.
+That second half is the point. Retired easy boxes are solved thousands of times over; the
+differentiator for a SOC-analyst target role is being able to exploit a technique *and* engineer the
+detection for it. The failure documentation is equally deliberate — understanding why a technique did
+not apply is as important as knowing when it does, and it is what makes the work reproducible.
+
+**Connection to [spectre](../spectre):** gauntlet builds the methodology and enumeration discipline in
+isolated lab boxes; spectre applies the same discipline end-to-end in a scoped grey-box engagement
+(PTES-structured, SHA-256 evidence chain, scope-halt at the ethical boundary). gauntlet is the drill;
+spectre is the engagement. **Connection to [watchtower](../watchtower):** the ATT&CK techniques
+demonstrated here map one-to-one to watchtower's Wazuh detection scenarios — the loop closes there.
 
 ---
 
@@ -27,6 +39,13 @@ immediate feedback.
 **HackTheBox** — competitive CTF environment with harder, less guided machines. Closer to a
 realistic engagement: the attack surface is defined, but the path from reconnaissance to root
 is not signposted.
+
+**Why both?** They train different muscles. TryHackMe's guided structure builds *coverage* — a
+systematic, named technique catalogue (the foundation you can map to Sec+ objectives). HackTheBox's
+unguided machines build *judgement* — choosing a path with no signposts, which is what a real
+engagement demands. Practising on both means the methodology is neither rote (THM-only) nor
+unstructured (HTB-only); the writeups deliberately apply the *same* discipline to both so the
+transferable skill, not the platform, is what shows.
 
 ---
 
@@ -163,9 +182,13 @@ solved thousands of times over — but the **discipline and transferability** th
   (AutoBlue, `{.exec.}` payloads, `ssh2john`, hand-built reverse shells) documented alongside it —
   because the manual route builds understanding and works when tooling is disallowed.
 - **Blue-team transferability (SOC relevance).** Every writeup maps its offensive steps to
-  **MITRE ATT&CK** techniques and adds a detection note — the same framework an L1/L2 SOC analyst
-  uses to recognise the activity in logs and EDR telemetry. This deliberately bridges the offensive
-  practice to the #1 target role.
+  **MITRE ATT&CK** (sub-technique level) and ships a **box-specific Wazuh detection rule** plus the
+  Event IDs / auditd / Sysmon artefacts a defender would see — the same framework an L1/L2 SOC
+  analyst uses to recognise the activity in logs and EDR telemetry. Those rules are the input to the
+  [watchtower](../watchtower) SIEM lab, so the offence→detection loop is demonstrated end-to-end, not
+  asserted. This deliberately bridges the offensive practice to the #1 target role.
+- **Cert-to-hands-on mapping.** Each writeup carries a Sec+ SY0-701 *exam-relevance* table — the box
+  made concrete against specific objectives — so the practice doubles as applied certification study.
 
 **Relevant to:** penetration testing / security consulting (offensive methodology and reporting) and
 SOC analyst roles (attack-technique recognition, ATT&CK fluency, detection mindset).
