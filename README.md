@@ -172,19 +172,19 @@ in its writeup; the offensive→detection mapping is GAUNTLET → watchtower bri
 techniques below are the inputs to watchtower's detection scenarios, which publish when the lab
 goes public).
 
-| Box | Platform | Difficulty | ATT&CK techniques (primary chain) | Status |
-|-----|----------|------------|-----------------------------------|--------|
-| [Blue](writeups/thm-blue.md) | TryHackMe | Easy | T1210 EternalBlue · T1055.012 process hollowing · T1003.002 SAM dump | Preparation stub |
-| [Kenobi](writeups/thm-kenobi.md) | TryHackMe | Easy | T1190 ProFTPD mod_copy · T1552.004 SSH key theft · T1021.004 SSH lateral · T1548.001 SUID · T1574.007 PATH | Preparation stub |
-| [Steel Mountain](writeups/thm-steel-mountain.md) | TryHackMe | Easy | T1190 HFS RCE · T1059 command · T1543.003 / T1574.009 service / unquoted path | Preparation stub |
-| [Alfred](writeups/thm-alfred.md) | TryHackMe | Easy | T1078.001 default creds · T1059 Groovy RCE · T1134.001 token impersonation | Preparation stub |
-| [Basic Pentesting](writeups/thm-basic-pentesting.md) | TryHackMe | Easy | T1135 share discovery · T1087 account discovery · T1552.004 SSH key · T1110 brute force · T1021.004 SSH lateral | Preparation stub |
-| [Lame](writeups/htb-lame.md) | HackTheBox | Easy | T1190 Samba usermap (CVE-2007-2447) · T1059.004 Unix shell → direct root | Preparation stub |
-| [Jerry](writeups/htb-jerry.md) | HackTheBox | Easy | T1190 Tomcat Manager · T1078 default creds · T1505.003 WAR web shell | Preparation stub |
-| [Relevant](writeups/thm-relevant.md) | TryHackMe | Medium | T1078 anon SMB creds · T1505.003 aspx web shell · T1134.001 SeImpersonate · T1552.001 creds in file | Preparation stub |
-| [Skynet](writeups/thm-skynet.md) | TryHackMe | Easy | T1552.001 leaked creds · T1190 Cuppa RFI · T1059.004 Unix shell · T1053.003 tar-wildcard cron | Preparation stub |
-| [Bashed](writeups/htb-bashed.md) | HackTheBox | Easy | T1505.003 phpbash web shell · T1059.004 Unix shell · T1548.003 sudo · T1053.003 root cron | Preparation stub |
-| [Beep](writeups/htb-beep.md) | HackTheBox | Easy | T1190 Elastix LFI · T1552.001 cleartext creds · T1078 / T1021.004 password reuse → root SSH | Preparation stub |
+| Box | Platform | Difficulty | Key Technique | ATT&CK | Status |
+|-----|----------|------------|---------------|--------|--------|
+| [Blue](writeups/thm-blue.md) | TryHackMe | Easy | EternalBlue SMBv1 RCE → SYSTEM | T1210 EternalBlue · T1055.012 process hollowing · T1003.002 SAM dump | Preparation stub |
+| [Kenobi](writeups/thm-kenobi.md) | TryHackMe | Easy | ProFTPD mod_copy → SUID/PATH privesc | T1190 ProFTPD mod_copy · T1552.004 SSH key theft · T1021.004 SSH lateral · T1548.001 SUID · T1574.007 PATH | Preparation stub |
+| [Steel Mountain](writeups/thm-steel-mountain.md) | TryHackMe | Easy | Rejetto HFS 2.3 RCE → service abuse | T1190 HFS RCE · T1059 command · T1543.003 / T1574.009 service / unquoted path | Preparation stub |
+| [Alfred](writeups/thm-alfred.md) | TryHackMe | Easy | Jenkins RCE → token impersonation | T1078.001 default creds · T1059 Groovy RCE · T1134.001 token impersonation | Preparation stub |
+| [Basic Pentesting](writeups/thm-basic-pentesting.md) | TryHackMe | Easy | SSH key recovery → sudo privesc | T1135 share discovery · T1087 account discovery · T1552.004 SSH key · T1110 brute force · T1021.004 SSH lateral | Preparation stub |
+| [Lame](writeups/htb-lame.md) | HackTheBox | Easy | Samba usermap RCE → direct root | T1190 Samba usermap (CVE-2007-2447) · T1059.004 Unix shell → direct root | Preparation stub |
+| [Jerry](writeups/htb-jerry.md) | HackTheBox | Easy | Tomcat WAR deploy → SYSTEM | T1190 Tomcat Manager · T1078 default creds · T1505.003 WAR web shell | Preparation stub |
+| [Relevant](writeups/thm-relevant.md) | TryHackMe | Medium | SMB share → aspx RCE → SeImpersonate | T1078 anon SMB creds · T1505.003 aspx web shell · T1134.001 SeImpersonate · T1552.001 creds in file | Preparation stub |
+| [Skynet](writeups/thm-skynet.md) | TryHackMe | Easy | Cuppa RFI → tar-wildcard cron → root | T1552.001 leaked creds · T1190 Cuppa RFI · T1059.004 Unix shell · T1053.003 tar-wildcard cron | Preparation stub |
+| [Bashed](writeups/htb-bashed.md) | HackTheBox | Easy | phpbash shell → sudo → root cron | T1505.003 phpbash web shell · T1059.004 Unix shell · T1548.003 sudo · T1053.003 root cron | Preparation stub |
+| [Beep](writeups/htb-beep.md) | HackTheBox | Easy | Elastix LFI → password reuse → root SSH | T1190 Elastix LFI · T1552.001 cleartext creds · T1078 / T1021.004 password reuse → root SSH | Preparation stub |
 
 > **Reading the status honestly.** "Preparation stub" is a completeness ceiling by design, not a
 > defect — the methodology, command rationale, ATT&CK mapping, and detection rule are complete; only
