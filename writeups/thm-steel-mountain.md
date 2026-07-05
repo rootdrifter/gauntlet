@@ -220,6 +220,34 @@ accounts; alert on Event 7045 and on service-binary file modifications.
 unquoted-service-path misconfiguration — which is why I use it to revise why Domain 2 separates
 'vulnerable software' from 'misconfiguration'."
 
+### Wazuh detection rule (→ [watchtower](../../watchtower))
+
+Two stages: the Rejetto HFS RCE (process anomaly) and the service-based privesc, where Windows
+**Event 7045** (new service) is the high-signal artefact:
+
+```xml
+<group name="windows,sysmon,attack,">
+  <!-- Stage 1: HFS spawning a shell = RCE -->
+  <rule id="100470" level="13">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">\\hfs\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">\\(cmd|powershell)\.exe$</field>
+    <description>Rejetto HFS spawned a shell — RCE (T1190/T1059)</description>
+    <mitre><id>T1190</id><id>T1059</id></mitre>
+  </rule>
+  <!-- Stage 2: new service installed (7045) with a binary from a temp/non-standard path -->
+  <rule id="100471" level="12">
+    <if_sid>61140</if_sid>   <!-- Wazuh Windows System channel: Service Control Manager 7045 -->
+    <field name="win.eventdata.imagePath" type="pcre2">(?i)\\(temp|users|programdata)\\</field>
+    <description>New Windows service from a non-standard path — privesc/persistence (T1543.003)</description>
+    <mitre><id>T1543.003</id></mitre>
+  </rule>
+</group>
+```
+**Validation:** exploit HFS in the lab and confirm 100470; replace the unquoted/writable service
+binary and confirm the 7045-derived 100471. Sub-techniques: **T1190**, **T1543.003** (Windows
+service), **T1574.009** (unquoted service path), **T1059** (command execution).
+
 ## 8. References
 
 - Rejetto HFS 2.3 CVE-2014-6287 (verify before citing).

@@ -226,6 +226,35 @@ it to the SIEM.
 visceral — admin:admin on a CI server is full RCE, and the token-impersonation privesc is access
 control taught from the attacker's chair."
 
+### Wazuh detection rule (→ [watchtower](../../watchtower))
+
+Two stages to catch: the Jenkins script-console RCE (web log) and the SeImpersonate/JuicyPotato
+token abuse (Sysmon):
+
+```xml
+<group name="jenkins,web,windows,attack,">
+  <!-- Stage 1: Jenkins access log — POST to the script console -->
+  <rule id="100440" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <url type="pcre2">/script(Text)?|/scriptler</url>
+    <regex>^POST</regex>
+    <description>Jenkins Script Console execution — possible RCE (T1059)</description>
+    <mitre><id>T1059</id></mitre>
+  </rule>
+  <!-- Stage 2: Sysmon — jenkins/java spawning a shell, prelude to token impersonation -->
+  <rule id="100441" level="13">
+    <if_group>sysmon_event1</if_group>
+    <field name="win.eventdata.parentImage" type="pcre2">\\(java|jenkins)\.exe$</field>
+    <field name="win.eventdata.image" type="pcre2">\\(cmd|powershell)\.exe$</field>
+    <description>Jenkins agent spawned a shell — privesc via SeImpersonate (T1134.001)</description>
+    <mitre><id>T1134.001</id></mitre>
+  </rule>
+</group>
+```
+**Validation:** trigger the Groovy RCE and confirm rule 100440; run the potato exploit and confirm
+100441. Sub-techniques: **T1059** (command execution), **T1134.001** (token impersonation/theft),
+**T1078** (default Jenkins creds → initial access).
+
 ## 9. References
 
 - Jenkins Script Console RCE technique (configuration exposure, not a single CVE).
