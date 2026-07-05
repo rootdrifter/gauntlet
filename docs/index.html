@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<!-- DESIGN RATIONALE:
+     New entry in the design system. Gauntlet is a living CTF scoreboard — active operation log.
+     Aesthetic: high-contrast green-on-dark terminal, challenge cards with difficulty tags.
+     Palette: --accent-green (#00e87a) primary, amber for in-progress, red-dim for hard.
+     Share Tech Mono for all machine names, platform labels, difficulty tags, tool names.
+     Barlow 300 for methodology narrative and descriptions.
+     Scanline overlay retained. Dense challenge card grid layout appropriate for a scoreboard.
+     Active status indicator in header — this is a living document.
+     Footer: gauntlet + 2026-06-10.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAUNTLET — CTF Writeups</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #060a08;
+    --surface: #090d0b;
+    --surface2: #0c1210;
+    --border: #121e18;
+    --border-bright: #1a2e22;
+    --green: #00e87a;
+    --green-dim: #00703b;
+    --green-pale: #003d20;
+    --amber: #e8a000;
+    --amber-dim: #7a5200;
+    --red: #e83838;
+    --red-dim: #5a1818;
+    --text: #a0c0a8;
+    --text-bright: #d0e8d4;
+    --muted: #38503e;
+    --code-bg: #050807;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,232,122,0.012) 2px, rgba(0,232,122,0.012) 4px);
+    pointer-events: none;
+    z-index: 100;
+  }
+
+  .container {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 3rem 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+  }
+
+  .sys-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--green-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 {
+    font-size: 2.4rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    color: #fff;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+  h1 .sep { color: var(--green); font-weight: 300; margin: 0 0.3em; }
+
+  .subtitle {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .corner-tag {
+    position: absolute; top: 0; right: 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem; color: var(--muted);
+    letter-spacing: 0.15em; text-align: right; line-height: 1.9;
+  }
+  .corner-tag span { display: block; }
+  .corner-tag .live { color: var(--green); }
+
+  .section-break {
+    display: flex; align-items: center; gap: 1rem; margin: 2.75rem 0 1.4rem;
+  }
+  .section-break span {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.62rem; letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--muted); white-space: nowrap;
+  }
+  .section-break::before, .section-break::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  .info-block {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green-pale);
+    padding: 0.9rem 1.25rem; margin: 1rem 0; font-size: 0.85rem; color: var(--text);
+  }
+  .info-block .blk-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.58rem; color: var(--green); letter-spacing: 0.22em;
+    text-transform: uppercase; display: block; margin-bottom: 0.35rem;
+  }
+
+  /* Platform stats */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border-bright); margin: 1rem 0; border: 1px solid var(--border-bright); }
+  .stat-cell { background: var(--surface); padding: 1rem 0.9rem; text-align: center; }
+  .stat-value { font-family: 'Share Tech Mono', monospace; font-size: 1.3rem; color: var(--green); line-height: 1; display: block; }
+  .stat-label { font-family: 'Share Tech Mono', monospace; font-size: 0.5rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-top: 0.4rem; display: block; }
+
+  /* Challenge cards */
+  .challenge-grid { display: flex; flex-direction: column; gap: 0.75rem; margin: 1rem 0; }
+  .challenge-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .challenge-card.complete { border-left: 3px solid var(--green); }
+  .challenge-card.stub { border-left: 3px solid var(--muted); }
+  .challenge-head {
+    display: flex; align-items: center; gap: 0.75rem;
+    padding: 0.6rem 1rem; background: rgba(0,0,0,0.2);
+    border-bottom: 1px solid var(--border);
+  }
+  .challenge-name {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.82rem; color: var(--text-bright); letter-spacing: 0.06em; flex: 1;
+  }
+  .platform-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.52rem; letter-spacing: 0.15em; text-transform: uppercase;
+    padding: 0.15em 0.55em;
+  }
+  .tag-thm { color: var(--green); border: 1px solid var(--green-pale); }
+  .tag-htb { color: var(--amber); border: 1px solid var(--amber-dim); }
+  .diff-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.5rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.15em 0.5em;
+  }
+  .diff-easy { color: var(--green); border: 1px solid var(--green-pale); }
+  .diff-medium { color: var(--amber); border: 1px solid var(--amber-dim); }
+  .diff-hard { color: var(--red); border: 1px solid var(--red-dim); }
+  .status-dot {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 0.52rem; letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.15em 0.5em;
+  }
+  .dot-complete { color: var(--green); border: 1px solid var(--green-pale); }
+  .dot-stub { color: var(--muted); border: 1px solid var(--border-bright); }
+  .challenge-body { padding: 0.7rem 1rem 0.75rem; font-size: 0.8rem; }
+  .challenge-body p { margin-bottom: 0.3rem; color: var(--muted); }
+  .challenge-body .attack { color: var(--text); font-size: 0.78rem; }
+  .tool-pills { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.4rem; }
+  .tool-pill {
+    font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; letter-spacing: 0.08em;
+    color: var(--green-dim); background: rgba(0,112,59,0.12);
+    padding: 0.15em 0.55em; border: 1px solid var(--green-pale);
+  }
+
+  /* Methodology grid */
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border-bright); margin: 1rem 0; }
+  .method-cell { background: var(--surface); padding: 0.85rem 1rem; font-size: 0.8rem; }
+  .method-label {
+    font-family: 'Share Tech Mono', monospace; font-size: 0.58rem;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--green);
+    display: block; margin-bottom: 0.3rem;
+  }
+  .method-cell p { color: var(--text); line-height: 1.5; }
+
+  /* Tool table */
+  .data-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 1rem 0; }
+  .data-table th {
+    font-family: 'Share Tech Mono', monospace; font-size: 0.55rem; letter-spacing: 0.2em;
+    text-transform: uppercase; color: var(--muted); padding: 0.45rem 0.9rem;
+    text-align: left; border-bottom: 1px solid var(--border-bright); background: var(--code-bg);
+  }
+  .data-table td { padding: 0.55rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(0,232,122,0.02); }
+  .data-table td:first-child { font-family: 'Share Tech Mono', monospace; font-size: 0.7rem; color: var(--green); letter-spacing: 0.04em; }
+
+  footer {
+    margin-top: 4rem; padding-top: 1.5rem; border-top: 1px solid var(--border);
+    font-family: 'Share Tech Mono', monospace; font-size: 0.6rem; color: var(--muted);
+    letter-spacing: 0.15em; display: flex; justify-content: space-between; text-transform: uppercase;
+  }
+
+  p { margin-bottom: 0.8rem; }
+  p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 640px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .method-grid { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 0.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <div class="sys-label">// CTF WRITEUPS — TRYHACKME &amp; HACKTHEBOX</div>
+    <h1>Gauntlet<span class="sep">//</span>Log</h1>
+    <div class="subtitle">METHODOLOGY-FIRST · RECONNAISSANCE TO ROOT · ONGOING — UPDATED AS CHALLENGES ARE COMPLETED</div>
+    <div class="corner-tag">
+      <span class="live">● ACTIVE</span>
+      <span>rev 2026-06-10</span>
+    </div>
+  </header>
+
+  <div class="stats-row">
+    <div class="stat-cell">
+      <span class="stat-value">5</span>
+      <span class="stat-label">Writeups complete</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-value">THM</span>
+      <span class="stat-label">Platform 1</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-value">HTB</span>
+      <span class="stat-label">Platform 2</span>
+    </div>
+    <div class="stat-cell">
+      <span class="stat-value">●</span>
+      <span class="stat-label">Live / growing</span>
+    </div>
+  </div>
+
+  <div class="info-block">
+    <span class="blk-label">Methodology</span>
+    Every writeup documents the reasoning process, not just the commands. The format is
+    consistent: what was observed, what was inferred, what was tried, what failed, and
+    what worked. Failure documentation is deliberate — understanding why a technique did
+    not apply is as important as knowing when it does. This repository grows with each
+    completed challenge.
+  </div>
+
+  <div class="section-break"><span>Platforms</span></div>
+
+  <div class="method-grid">
+    <div class="method-cell">
+      <span class="method-label">TryHackMe</span>
+      <p>Structured learning paths and guided rooms. Used for building systematic knowledge
+      of specific techniques — privilege escalation, web exploitation, SMB, Active Directory.
+      Immediate feedback loop.</p>
+    </div>
+    <div class="method-cell">
+      <span class="method-label">HackTheBox</span>
+      <p>Competitive CTF environment with harder, less guided machines. Closer to realistic
+      engagements — the attack surface is defined, but the path from recon to root is not
+      signposted. Builds independent methodology.</p>
+    </div>
+  </div>
+
+  <div class="section-break"><span>Writeup Index</span></div>
+
+  <div class="challenge-grid">
+
+    <div class="challenge-card complete">
+      <div class="challenge-head">
+        <span class="challenge-name">Blue</span>
+        <span class="platform-tag tag-thm">THM</span>
+        <span class="diff-tag diff-easy">Easy</span>
+        <span class="status-dot dot-complete">Stub</span>
+      </div>
+      <div class="challenge-body">
+        <p class="attack">EternalBlue (MS17-010) → SMBv1 → SYSTEM shell → Hashdump</p>
+        <div class="tool-pills">
+          <span class="tool-pill">nmap</span>
+          <span class="tool-pill">metasploit</span>
+          <span class="tool-pill">hashdump</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="challenge-card complete">
+      <div class="challenge-head">
+        <span class="challenge-name">Kenobi</span>
+        <span class="platform-tag tag-thm">THM</span>
+        <span class="diff-tag diff-easy">Easy</span>
+        <span class="status-dot dot-complete">Stub</span>
+      </div>
+      <div class="challenge-body">
+        <p class="attack">SMB + NFS enumeration → ProFTPD path traversal → SUID privilege escalation</p>
+        <div class="tool-pills">
+          <span class="tool-pill">nmap</span>
+          <span class="tool-pill">enum4linux</span>
+          <span class="tool-pill">smbclient</span>
+          <span class="tool-pill">netcat</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="challenge-card complete">
+      <div class="challenge-head">
+        <span class="challenge-name">Steel Mountain</span>
+        <span class="platform-tag tag-thm">THM</span>
+        <span class="diff-tag diff-easy">Easy</span>
+        <span class="status-dot dot-complete">Stub</span>
+      </div>
+      <div class="challenge-body">
+        <p class="attack">HFS 2.3 RCE → CVE-2014-6287 → msfvenom shell → PowerUp unquoted service path PE</p>
+        <div class="tool-pills">
+          <span class="tool-pill">nmap</span>
+          <span class="tool-pill">metasploit</span>
+          <span class="tool-pill">msfvenom</span>
+          <span class="tool-pill">PowerUp.ps1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="challenge-card complete">
+      <div class="challenge-head">
+        <span class="challenge-name">Alfred</span>
+        <span class="platform-tag tag-thm">THM</span>
+        <span class="diff-tag diff-easy">Easy</span>
+        <span class="status-dot dot-complete">Stub</span>
+      </div>
+      <div class="challenge-body">
+        <p class="attack">Jenkins default credentials → Groovy script console RCE → token impersonation</p>
+        <div class="tool-pills">
+          <span class="tool-pill">nmap</span>
+          <span class="tool-pill">jenkins</span>
+          <span class="tool-pill">nishang</span>
+          <span class="tool-pill">metasploit</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="challenge-card complete">
+      <div class="challenge-head">
+        <span class="challenge-name">Basic Pentesting</span>
+        <span class="platform-tag tag-thm">THM</span>
+        <span class="diff-tag diff-easy">Easy</span>
+        <span class="status-dot dot-complete">Stub</span>
+      </div>
+      <div class="challenge-body">
+        <p class="attack">SMB enumeration → Samba username disclosure → SSH brute-force → SUID + sudo PE</p>
+        <div class="tool-pills">
+          <span class="tool-pill">nmap</span>
+          <span class="tool-pill">enum4linux</span>
+          <span class="tool-pill">hydra</span>
+          <span class="tool-pill">linpeas</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="info-block" style="border-left-color: var(--amber);">
+    <span class="blk-label" style="color:var(--amber)">Active — More Writeups Loading</span>
+    This index grows as challenges are completed. Pending: additional TryHackMe rooms
+    (RootMe, Ice, Lian Yu) and HackTheBox machines (Lame, Legacy). Each writeup follows
+    the methodology template in README — from initial recon to root, with failure paths
+    documented alongside successes.
+  </div>
+
+  <div class="section-break"><span>Methodology Notes</span></div>
+
+  <div class="method-grid">
+    <div class="method-cell">
+      <span class="method-label">Enumeration Order</span>
+      <p>Full-port SYN scan → service + version fingerprinting → OS detection → per-service
+      deep enumeration. Web gets Gobuster/ffuf + Nikto. SMB gets enum4linux. Never skip
+      UDP where a UDP service is suspected.</p>
+    </div>
+    <div class="method-cell">
+      <span class="method-label">Privilege Escalation</span>
+      <p>LinPEAS first pass → review SUID/SGID, sudo -l, cron jobs, writable paths, kernel
+      version, service permissions. GTFOBins for SUID/sudo vectors. Always check service
+      account permissions and unquoted service paths (Windows).</p>
+    </div>
+    <div class="method-cell">
+      <span class="method-label">Shell Stabilisation</span>
+      <p>Python pty spawn → export TERM=xterm → stty raw -echo. Tab completion and job
+      control restored. Prevents accidental ctrl-C kills in reverse shells.</p>
+    </div>
+    <div class="method-cell">
+      <span class="method-label">Documentation Standard</span>
+      <p>All commands logged with rationale. Failed attempts documented with the reason they
+      failed. Evidence screenshots where appropriate. Tools listed with purpose, not just name.</p>
+    </div>
+  </div>
+
+  <div class="section-break"><span>Tool Stack</span></div>
+
+  <table class="data-table">
+    <tr><th>Category</th><th>Tools</th></tr>
+    <tr><td>Recon / enumeration</td><td>nmap, gobuster, ffuf, whatweb, nikto, enum4linux, dig</td></tr>
+    <tr><td>Web exploitation</td><td>Burp Suite, sqlmap, manual injection, curl</td></tr>
+    <tr><td>Credentials</td><td>hashcat, john, hydra, credential wordlists (rockyou)</td></tr>
+    <tr><td>Privilege escalation</td><td>linpeas, winpeas, pspy, GTFOBins, PowerUp.ps1</td></tr>
+    <tr><td>Post-exploitation</td><td>Metasploit (where appropriate), manual shell stabilisation</td></tr>
+    <tr><td>Binary / reversing</td><td>gdb, pwndbg, ghidra, objdump, strings</td></tr>
+  </table>
+
+  <div class="section-break"><span>Repository</span></div>
+
+  <div class="info-block">
+    <span class="blk-label">GitHub</span>
+    Full writeups, methodology notes, and templates:
+    <span style="font-family:'Share Tech Mono',monospace;font-size:0.78rem;color:var(--green)">github.com/rootdrift/gauntlet</span>
+  </div>
+
+  <footer>
+    <span>gauntlet — ctf writeups — tryhackme + hackthebox</span>
+    <span>rev 2026-06-10</span>
+  </footer>
+
+</div>
+</body>
+</html>
