@@ -68,6 +68,10 @@ queue below takes them to ~90% without running the machine (live flags still req
   root-run cron without credentials) — the canonical "watch for scheduled tasks" lesson.
 - **Detection add:** Wazuh rule for a web shell spawning `python`/`bash` (web-server parent → shell
   child), plus a `pspy`-equivalent auditd rule on cron execution as root.
+  > **Addressed 2026-06-22:** §4 now carries the `pspy64 -pf` step (confirms the root cron without
+  > credentials, with the explicit "`crontab -l` shows only your jobs" rationale); §8 adds the
+  > web-server→interpreter process-lineage detection (rule `100522`, flagged higher-fidelity than the
+  > URL match because it survives the shell being renamed). Remaining headroom: the live solve.
 
 ### thm-skynet — SMB→SquirrelMail→Cuppa RFI→tar-wildcard
 - **Longest technique chain of the three** but thin on the **tar-wildcard cron** privesc, which is a
@@ -76,6 +80,10 @@ queue below takes them to ~90% without running the machine (live flags still req
 - **Recon:** the `/etc/hosts`-style vhost / SMB share that leaks the SquirrelMail path.
 - **Detection add:** auditd rule on `tar` executed by root with `--checkpoint` in a cron context;
   Wazuh correlation of the web RFI fetch (outbound HTTP from the web user) preceding it.
+  > **Addressed 2026-06-22:** §4 now explains the *mechanism* — shell glob expansion places
+  > `--checkpoint*` filenames on tar's argument vector as options (no `--` end-of-options guard), and
+  > generalises it to any privileged command over a user-writable glob (`rsync -e`, `chown
+  > --reference`, `zip --unzip-command`). The "why", not just the payload. Remaining headroom: the live solve.
 
 ## What the audit deliberately does **not** recommend
 

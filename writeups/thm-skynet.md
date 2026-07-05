@@ -92,6 +92,17 @@ ls -la /home/milesdyson/backups
   ```
 - When the root cron runs `tar ... *`, the crafted filenames become `tar` arguments and execute
   `shell.sh` as **root**.
+- **Why the injection works (the mechanism, not just the recipe).** The cron line is
+  `tar -zcf backup.tgz *`, and the **shell — not tar — expands the `*` glob** into the directory's
+  filenames *before* `tar` is ever invoked. There is no `--` end-of-options separator in the cron
+  command, so a file literally named `--checkpoint=1` is handed to `tar` on its argument vector as the
+  *option* `--checkpoint=1`, not as a path to archive — `tar` cannot tell a filename that looks like an
+  option from a real one. GNU `tar` honours `--checkpoint=N` (emit a progress message every N records)
+  and `--checkpoint-action=exec=CMD` (run `CMD` at each checkpoint), so the second planted filename makes
+  `tar` execute `sh shell.sh` itself, as root. The pattern generalises to **any privileged command run
+  over a user-writable glob** whose binary accepts an `--option=value` that can execute or write
+  (`rsync -e`, `chown --reference`, `zip --unzip-command`) — which is exactly why §7's lesson is "check
+  every root cron that touches a `*` against GTFOBins", not "memorise the tar payload".
 - [Root flag on completion.]
 
 ## 5. Tools used
