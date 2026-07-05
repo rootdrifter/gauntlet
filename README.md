@@ -140,7 +140,7 @@ Post-exploitation: `metasploit` (where appropriate), manual shell stabilisation
 
 ## Writeup index
 
-Ten structured writeups are in place (seven Easy + one Medium across Linux and Windows). Each is
+Eleven structured writeups are in place (ten Easy + one Medium across Linux and Windows). Each is
 honestly labelled: where a machine has not yet
 been solved under my own account, it is marked a **preparation stub** — a study scaffold built
 from publicly documented information, with no live flag values recorded. Stubs become full
@@ -160,6 +160,7 @@ steps to the framework a defender would use to detect them.
 | [Relevant](writeups/thm-relevant.md) | TryHackMe | Medium | Windows | Anon SMB creds + writable web-share → aspx RCE → SeImpersonate → SYSTEM |
 | [Skynet](writeups/thm-skynet.md) | TryHackMe | Easy | Linux | SMB cred-chain → SquirrelMail → Cuppa CMS RFI → tar wildcard cron → root |
 | [Bashed](writeups/htb-bashed.md) | HackTheBox | Easy | Linux | Exposed phpbash web shell → sudo to scriptmanager → root cron → root |
+| [Beep](writeups/htb-beep.md) | HackTheBox | Easy | Linux | Elastix LFI → cleartext config creds → password reuse → root SSH |
 
 Methodology spine: [methodology/ctf-methodology.md](methodology/ctf-methodology.md) — enumeration
 discipline, OWASP→CTF mapping, privilege-escalation triage order, and evidence standards.
