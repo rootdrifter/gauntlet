@@ -53,6 +53,9 @@ queue below takes them to ~90% without running the machine (live flags still req
   route only. *Add:* the alternative `webmin` LFI and the `shellshock` route as ruled-out/alternate
   vectors with the reasoning for choosing the SSH cred-reuse path — this is exactly the judgement the
   README claims the repo trains.
+  > **Addressed 2026-06-19:** §3 now carries the full quietest-first contingency tree (SSH cred-reuse
+  > chosen; Elastix LFI→RCE, Shellshock, and Webmin:10000 documented as ruled-out/fallback vectors
+  > with reasoning). The remaining headroom is the live solve (flag values + real output).
 - **Recon precision:** note the SSL-cert CN leak and the FreePBX version banner as the version→CVE
   pivot. `nmap -sC -sV -p- --min-rate 1000` then the targeted Elastix LFI path.
 - **Detection add:** an LFI signature on the Apache access log (`?file=../` / `amportal` path traversal)

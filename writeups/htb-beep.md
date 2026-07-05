@@ -78,9 +78,20 @@ curl -sk "https://10.10.x.x/vtigercrm/graph.php?current_language=../../../../../
   ```
   ssh -oKexAlgorithms=+diffie-hellman-group1-sha1 -oHostKeyAlgorithms=+ssh-rsa root@10.10.x.x
   ```
-- *Vector choice:* SSH-as-root via reused creds is the cleanest single step; record the alternative
-  (Elastix RCE / Shellshock on the web stack) as a considered route. **One step to root because the
-  admin password was reused** — that's the lesson.
+- *Vector choice — and the routes ruled out.* Beep is the canonical "many ways to root" box, so the
+  choice itself is the methodology lesson. The contingency tree, quietest-first:
+  - **SSH as root with the reused `amportal.conf` password (chosen)** — one authenticated step, no
+    payload, lowest footprint, and it exercises the real-world finding (password reuse). Preferred
+    precisely because it is deterministic and quiet.
+  - **Elastix `graph.php` LFI → RCE (alternative)** — viable but noisier and version-dependent; the
+    route to take only if root SSH login were disabled.
+  - **Shellshock against the web CGI (alternative)** — works on the vulnerable `bash` but is a louder,
+    exploit-driven path; kept as a fallback, not a first move.
+  - **Webmin on `:10000` (alternative surface)** — a separate admin panel worth enumerating, but the
+    config-disclosed credential already gave the shortest path, so it stays unexplored unless the
+    primary route fails.
+  The discipline a real engagement rewards: take the **quietest authenticated route first**, and
+  record the rest as the explicit fallback tree rather than firing exploits opportunistically.
 - [Both flags on completion — root login means user + root together.]
 
 ## 4. Post-exploitation
