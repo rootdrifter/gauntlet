@@ -3,7 +3,7 @@
 **Active CTF practice that connects offensive technique to defensive detection.** Methodology-first
 TryHackMe and HackTheBox writeups — every box is worked *and* turned into the question a SOC analyst
 actually asks: "what log would have caught this, and what rule fires?" Each writeup now carries a
-box-specific **Wazuh detection rule** that feeds directly into the [watchtower](../watchtower) SIEM
+box-specific **Wazuh detection rule** that feeds directly into the watchtower SIEM
 lab. Updated as rooms are completed.
 
 ---
@@ -22,10 +22,10 @@ differentiator for a SOC-analyst target role is being able to exploit a techniqu
 detection for it. The failure documentation is equally deliberate — understanding why a technique did
 not apply is as important as knowing when it does, and it is what makes the work reproducible.
 
-**Connection to [spectre](../spectre):** gauntlet builds the methodology and enumeration discipline in
+**Connection to [spectre](https://github.com/rootdrifter/spectre):** gauntlet builds the methodology and enumeration discipline in
 isolated lab boxes; spectre applies the same discipline end-to-end in a scoped grey-box engagement
 (PTES-structured, SHA-256 evidence chain, scope-halt at the ethical boundary). gauntlet is the drill;
-spectre is the engagement. **Connection to [watchtower](../watchtower):** the ATT&CK techniques
+spectre is the engagement. **Connection to watchtower:** the ATT&CK techniques
 demonstrated here map one-to-one to watchtower's Wazuh detection scenarios — the loop closes there.
 
 ---
@@ -190,7 +190,7 @@ solved thousands of times over — but the **discipline and transferability** th
   **MITRE ATT&CK** (sub-technique level) and ships a **box-specific Wazuh detection rule** plus the
   Event IDs / auditd / Sysmon artefacts a defender would see — the same framework an L1/L2 SOC
   analyst uses to recognise the activity in logs and EDR telemetry. Those rules are the input to the
-  [watchtower](../watchtower) SIEM lab, so the offence→detection loop is demonstrated end-to-end, not
+  watchtower SIEM lab, so the offence→detection loop is demonstrated end-to-end, not
   asserted. This deliberately bridges the offensive practice to the #1 target role.
 - **Cert-to-hands-on mapping.** Each writeup carries a Sec+ SY0-701 *exam-relevance* table — the box
   made concrete against specific objectives — so the practice doubles as applied certification study.
