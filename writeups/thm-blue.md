@@ -22,6 +22,14 @@ A Windows host exposed to the **EternalBlue** SMBv1 vulnerability (**MS17-010**)
 yields a SYSTEM-level shell directly, after which credentials are dumped and the flags collected.
 The room teaches the canonical "unpatched SMB → full compromise" path that underpinned WannaCry.
 
+## Scenario value (study scaffold)
+
+- **What it tests:** identifying a critical unauthenticated RCE from a service banner + vuln scan, and
+  the "single unpatched legacy service → full compromise" lesson.
+- **What completing it demonstrates:** confident use of `nmap` vuln NSE, the EternalBlue exploit
+  (Metasploit *and* the manual AutoBlue path), post-exploitation (migrate, hashdump, offline crack),
+  and the blue-team transfer — why SMBv1 must be disabled and patched (MITRE T1210).
+
 ## Key vulnerability class
 
 - **CWE/Class:** Remote code execution via memory corruption in SMBv1 (`srv.sys`).

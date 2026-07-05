@@ -22,6 +22,14 @@ A Windows host running **Jenkins** with weak/default credentials. The Jenkins **
 (abusing `SeImpersonatePrivilege`) escalates to SYSTEM. Teaches CI/CD exposure and Windows
 privilege-token abuse.
 
+## Scenario value (study scaffold)
+
+- **What it tests:** recognising an exposed CI/CD system (Jenkins) as RCE-as-a-feature, and Windows
+  privilege escalation via `SeImpersonatePrivilege`.
+- **What completing it demonstrates:** web-foothold-to-SYSTEM on Windows — Groovy Script Console RCE
+  to a reverse shell, then token impersonation (Incognito / Potato family), and the `whoami /priv`
+  discipline (MITRE T1078 → T1059 → T1134.001).
+
 ## Key vulnerability class
 
 - **Foothold:** **Jenkins** exposed with weak/default credentials → authenticated **Groovy Script

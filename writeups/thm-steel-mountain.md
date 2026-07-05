@@ -23,6 +23,14 @@ service** (identified with PowerUp) to run a malicious binary as SYSTEM. Teaches
 service-misconfiguration privesc, and the room is designed to be solved both with and without
 Metasploit.
 
+## Scenario value (study scaffold)
+
+- **What it tests:** mapping a service banner (Rejetto HFS 2.3) to a known CVE, and Windows
+  service-misconfiguration privilege escalation.
+- **What completing it demonstrates:** both the Metasploit *and* the manual `{.exec.}` exploitation
+  paths, plus PowerUp-driven privesc on an insecure/writable service binary (MITRE T1190 → T1543.003
+  / T1574.009) — the room is explicitly designed to be solved both ways.
+
 ## Key vulnerability class
 
 - **Foothold:** Rejetto **HFS 2.3** RCE via the `{.exec.}` macro in the search parameter —
