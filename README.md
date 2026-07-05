@@ -168,9 +168,9 @@ The same eleven boxes viewed by **MITRE ATT&CK coverage** — the primary techni
 demonstrates, and its honest completion status. Every box is currently a **preparation stub** (a
 study scaffold built from public documentation, with no live flag values); a stub becomes a full
 writeup once the box is solved under my own account. Each box's per-step sub-technique mapping lives
-in its writeup; the offensive→detection mapping is in [GAUNTLET → watchtower
-bridge](https://github.com/rootdrifter/watchtower) territory (the techniques below are the inputs to
-watchtower's detection scenarios).
+in its writeup; the offensive→detection mapping is GAUNTLET → watchtower bridge territory (the
+techniques below are the inputs to watchtower's detection scenarios, which publish when the lab
+goes public).
 
 | Box | Platform | Difficulty | ATT&CK techniques (primary chain) | Status |
 |-----|----------|------------|-----------------------------------|--------|
