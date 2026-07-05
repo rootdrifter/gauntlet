@@ -125,3 +125,7 @@ history for recently added rooms.
 
 <!-- Writeups will appear here as subdirectories named by platform/machine -->
 <!-- e.g. tryhackme/mr-robot/, hackthebox/lame/ -->
+
+---
+
+*Part of the [rootdrifter](https://github.com/rootdrifter) security portfolio — built and maintained by a security-cleared candidate. UK-issued clearance held now, not pending vetting: deployable to cleared work from day one.*
