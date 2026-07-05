@@ -200,4 +200,4 @@ SOC analyst roles (attack-technique recognition, ATT&CK fluency, detection minds
 
 ---
 
-*Part of the [rootdrifter](https://github.com/rootdrifter) security portfolio — built and maintained by a security-cleared candidate. UK-issued clearance held now, not pending vetting: deployable to cleared work from day one.*
+*Part of the [rootdrifter](https://github.com/rootdrifter) security portfolio — full writeup at [rootdrifter.io/portfolio/gauntlet/](https://rootdrifter.io/portfolio/gauntlet/). Built and maintained by a security-cleared candidate. UK-issued clearance held now, not pending vetting: deployable to cleared work from day one.*
