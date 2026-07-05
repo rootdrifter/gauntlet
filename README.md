@@ -124,15 +124,17 @@ Post-exploitation: `metasploit` (where appropriate), manual shell stabilisation
 Seven structured writeups are in place. Each is honestly labelled: where a machine has not yet
 been solved under my own account, it is marked a **preparation stub** — a study scaffold built
 from publicly documented information, with no live flag values recorded. Stubs become full
-writeups as each box is worked.
+writeups as each box is worked. Every writeup carries command-backed recon/enumeration/
+exploitation sections and a per-machine **MITRE ATT&CK technique mapping** — tying the offensive
+steps to the framework a defender would use to detect them.
 
 | Machine | Platform | Difficulty | OS | Attack path |
 |---------|----------|------------|-----|-------------|
 | [Blue](writeups/thm-blue.md) | TryHackMe | Easy | Windows | EternalBlue / MS17-010 → SMBv1 → SYSTEM → hashdump |
-| [Kenobi](writeups/thm-kenobi.md) | TryHackMe | Easy | Linux | SMB + NFS enum → ProFTPD mod_copy → SUID privesc |
-| [Steel Mountain](writeups/thm-steel-mountain.md) | TryHackMe | Easy | Windows | Rejetto HFS 2.3 RCE (CVE-2014-6287) → unquoted service path |
+| [Kenobi](writeups/thm-kenobi.md) | TryHackMe | Easy | Linux | SMB + NFS enum → ProFTPD mod_copy → SUID/PATH privesc |
+| [Steel Mountain](writeups/thm-steel-mountain.md) | TryHackMe | Easy | Windows | Rejetto HFS 2.3 RCE (CVE-2014-6287) → insecure service binary |
 | [Alfred](writeups/thm-alfred.md) | TryHackMe | Easy | Windows | Jenkins default creds → Groovy console RCE → token impersonation |
-| [Basic Pentesting](writeups/thm-basic-pentesting.md) | TryHackMe | Easy | Linux | SMB user disclosure → SSH brute-force → SUID + sudo privesc |
+| [Basic Pentesting](writeups/thm-basic-pentesting.md) | TryHackMe | Easy | Linux | SMB user disclosure → SSH key recovery / crack → sudo privesc |
 | [Lame](writeups/htb-lame.md) | HackTheBox | Easy | Linux | Samba 3.0.20 usermap_script (CVE-2007-2447) → direct root |
 | [Jerry](writeups/htb-jerry.md) | HackTheBox | Easy | Windows | Tomcat Manager default creds → WAR deploy → SYSTEM |
 
@@ -141,6 +143,32 @@ discipline, OWASP→CTF mapping, privilege-escalation triage order, and evidence
 
 The repository is active — new rooms are added as they are completed; check commit history for the
 most recent.
+
+---
+
+## Skills Demonstrated
+
+The value of this repository for a security employer is not the flags — retired easy boxes are
+solved thousands of times over — but the **discipline and transferability** the writeups show:
+
+- **Methodology over shortcuts.** A consistent recon → enumeration → exploitation → post-exploitation
+  → lessons structure applied to every box, with failed paths and ruled-out rabbit holes documented
+  (e.g. the vsftpd 2.3.4 decoy on Lame, distcc as the slower alternate route). Knowing *why* a
+  technique does not apply is the skill that scales to real engagements.
+- **Version-to-vulnerability mapping.** Reading a service banner (`smbd 3.0.20`, `HttpFileServer 2.3`,
+  `ProFTPD 1.3.5`) and cross-referencing it to a known CVE before touching anything noisy.
+- **Both Linux and Windows privilege escalation.** SUID/PATH interception and NFS-staged key theft on
+  Linux; unquoted/writable service paths and `SeImpersonatePrivilege` token impersonation on Windows.
+- **Tool fluency and the manual fallback.** Metasploit where appropriate, but the manual path
+  (AutoBlue, `{.exec.}` payloads, `ssh2john`, hand-built reverse shells) documented alongside it —
+  because the manual route builds understanding and works when tooling is disallowed.
+- **Blue-team transferability (SOC relevance).** Every writeup maps its offensive steps to
+  **MITRE ATT&CK** techniques and adds a detection note — the same framework an L1/L2 SOC analyst
+  uses to recognise the activity in logs and EDR telemetry. This deliberately bridges the offensive
+  practice to the #1 target role.
+
+**Relevant to:** penetration testing / security consulting (offensive methodology and reporting) and
+SOC analyst roles (attack-technique recognition, ATT&CK fluency, detection mindset).
 
 ---
 
