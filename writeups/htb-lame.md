@@ -50,6 +50,20 @@ Expected exposed surface (confirm on completion):
 
 [Paste trimmed scan output on completion.]
 
+**nmap flag rationale:**
+- `-p-` — scan all 65,535 TCP ports. Never assume a service sits on its standard port; high ports
+  are the classic "stuck for an hour" miss.
+- `-sV` — service/version detection. On this box the single load-bearing fact is the banner
+  `Samba smbd 3.0.20`; the version *is* the vulnerability.
+- `-sC` — run the default NSE script category (equivalent to `--script=default`). Cheap banner,
+  OS-discovery and config hints with no extra effort.
+- `-oA nmap/lame` — write normal/grep/XML output so the version evidence is re-referenceable
+  without a noisy rescan.
+
+**What to look for in the scan:** service banners that predate a known fix. `Samba 3.0.20`
+(2006-era) and `OpenSSH 4.7p1` both flag a legacy host — pivot straight to version→CVE mapping
+rather than content enumeration. One ancient service is usually the whole path.
+
 ## 2. Enumeration
 
 ```
@@ -62,12 +76,19 @@ smbclient -L //10.10.x.x/ -N
   but lands as the low-priv `daemon` user and then needs a privesc — slower than the Samba route.
 - [Record share listing / null-session results on completion.]
 
+**What to look for after SMB enumeration:** you are confirming the *version string*, not hunting
+shares. `enum4linux` echoes the Samba banner in its session output — anything in the range
+3.0.0–3.0.25rc3 is CVE-2007-2447-vulnerable. Null-session share access here is a bonus, not the
+path; do not rabbit-hole on share contents once the version is confirmed.
+
 ## 3. Exploitation
 
 - **Chosen vector and why:** Samba `usermap_script` over distcc — it yields root in a single step
   with no privesc, the cleaner path.
 - The injection is delivered through the SMB *username* field (e.g. `/=`nohup <cmd>``), which
-  `smbd` passes to a shell.
+  `smbd` passes to a shell. **[ATT&CK T1190 — Exploit Public-Facing Application]** → the shell
+  metacharacters are executed by `smbd` **[ATT&CK T1059.004 — Command and Scripting Interpreter:
+  Unix Shell]**.
 
 ```
 # Metasploit path
@@ -115,7 +136,46 @@ run
 - **Service account context matters** — when the vulnerable service runs as root, "exploitation"
   and "privesc" collapse into one step.
 
-## 8. References
+## 8. Defender perspective — logs & detection
+
+What this attack looks like from a monitored SOC, and the rule that would catch it. (This is the
+offence→detection bridge a SOC-analyst role needs to see; see
+[../methodology/ctf-methodology.md §7](../methodology/ctf-methodology.md).)
+
+**Log artefacts generated:**
+- **Samba logs** (`/var/log/samba/log.smbd`, `log.<client-ip>`): a session-setup whose username
+  field contains shell metacharacters (backticks, `nohup`, `/=`) — legitimate usernames never
+  contain `` ` `` or `/`.
+- **Process telemetry:** the injected command runs as a child of `smbd` executing as **root** —
+  an `smbd` parent spawning `/bin/sh`, `bash`, `nc`, or `python` is the anomaly; the SMB daemon
+  has no legitimate reason to fork an interactive shell.
+- **auditd `execve` records** (if `-a exit,always -F arch=b64 -S execve` is configured) tie the
+  shell back to the smbd PID under UID 0.
+- **Network:** outbound TCP from the host to the attacker's listener (reverse shell) in firewall /
+  NetFlow / Zeek `conn.log`.
+
+**Example detection logic (Sigma-style):**
+```yaml
+title: Samba usermap_script command injection (CVE-2007-2447)
+logsource: { product: linux, service: auditd }
+detection:
+  selection:
+    ParentImage|endswith: '/smbd'
+    Image|endswith: ['/sh', '/bash', '/nc', '/python', '/python3']
+  condition: selection
+level: critical
+```
+SIEM phrasing: alert when `parent_process == smbd AND child_process IN (sh, bash, nc, python*)`.
+
+**Why it fires:** the exploit *requires* `smbd` to execute a shell — the very behaviour the rule
+keys on. Detection is high-fidelity (near-zero false positives) because the malicious behaviour and
+the detection signal are the same event. Maps to **ATT&CK T1190 / T1059.004**.
+
+**Defensive controls:** patch Samba (the only real fix); run `smbd` least-privileged; restrict
+139/445 to trusted networks; alert on shell metacharacters in any authentication field.
+
+## 9. References
 
 - CVE-2007-2447 — Samba `username map script` command injection (verify scope before citing).
 - Samba 3.0.20 changelog / security advisory.
+- MITRE ATT&CK T1190, T1059.004.

@@ -47,6 +47,18 @@ Expected exposed surface (confirm on completion):
 [Paste trimmed scan output on completion. Only one port is open — a strong hint the whole path is
 through the web service.]
 
+**nmap flag rationale:**
+- `-p-` — all 65,535 TCP ports. Here it confirms a *negative*: only 8080 is open, which itself is
+  a strong steer that the entire path runs through the web service.
+- `-sV` — version detection. Pins `Apache Tomcat/Coyote JSP engine 1.1` and the Tomcat build, the
+  fact that tells you the Manager app and its default-credential weakness exist.
+- `-sC` — default NSE scripts; `http-title` / `http-methods` surface the Tomcat landing page early.
+- `-oA nmap/jerry` — preserve evidence of the single-port surface.
+
+**What to look for in the scan:** a single open web port on 8080 with a Tomcat/Coyote banner.
+Few-ports boxes mean *depth-first on what is open* beats broad scanning — and an exposed Tomcat
+immediately raises the `/manager/html` default-credential question.
+
 ## 2. Enumeration
 
 ```
@@ -61,10 +73,20 @@ gobuster dir -u http://10.10.x.x:8080/ -w /usr/share/wordlists/dirb/common.txt
   defaults — the fastest path is the intended one.
 - [Record the working credential discovery on completion.]
 
+**What to look for after web enumeration:** the Tomcat **Manager** (`/manager/html`) and **Host
+Manager** (`/host-manager/html`) paths, and whether they respond to default credentials
+(`tomcat:s3cret`, `admin:admin`, `tomcat:tomcat`). `whatweb` confirms the exact Tomcat version;
+`gobuster` confirms Manager is reachable. The HTTP **401 → 403 → 200** progression on
+`/manager/html` tells you whether the issue is missing auth, IP restriction, or open access.
+
 ## 3. Exploitation
 
 - **Chosen vector and why:** the Tomcat Manager "Deploy" function is designed to upload
   applications; a WAR-packaged JSP shell is the canonical abuse and needs no exploit code.
+- **Phase tags:** authenticating with the default pair is **[ATT&CK T1078 — Valid Accounts]**;
+  deploying the WAR through the Manager is **[ATT&CK T1190 — Exploit Public-Facing Application]**;
+  the deployed JSP is **[ATT&CK T1505.003 — Server Software Component: Web Shell]**, which on
+  trigger executes commands **[ATT&CK T1059 — Command and Scripting Interpreter]**.
 
 ```
 # Build a JSP reverse-shell WAR
@@ -113,7 +135,49 @@ nc -lvnp 4444
   immediately full compromise; the blue-team lesson is to run application servers as a low-privilege
   service account.
 
-## 8. References
+## 8. Defender perspective — logs & detection
+
+What this attack looks like from a monitored SOC, and the rule that would catch it. (Offence→
+detection bridge; see [../methodology/ctf-methodology.md §7](../methodology/ctf-methodology.md).)
+
+**Log artefacts generated:**
+- **Tomcat access log** (`localhost_access_log.*`): a `POST`/`PUT` to
+  `/manager/text/deploy` or `/manager/html/upload` preceded by a `401` then a `200` on
+  `/manager/html` — the failed-then-successful Basic-auth pattern of a default-credential login,
+  followed by a deployment. A `GET` to a never-before-seen context path (`/shell/`) is the shell
+  being triggered.
+- **Tomcat manager audit:** a new application context appearing outside any change window.
+- **Windows process telemetry (Sysmon Event ID 1):** `Tomcat*.exe` / `java.exe` spawning
+  `cmd.exe` or `powershell.exe` — an application server spawning a command interpreter is the
+  high-signal indicator. Parent = Tomcat, child = shell.
+- **Network:** outbound TCP from the server to the attacker listener (the reverse shell), abnormal
+  for a host that should only *receive* on 8080.
+
+**Example detection logic (Splunk SPL):**
+```
+index=web sourcetype=tomcat_access uri_path="/manager/text/deploy" (status=200 OR status=201)
+| stats count by src_ip, uri_query, status
+```
+And the host-side companion (Sysmon):
+```
+title: Tomcat spawns a shell (web-shell execution)
+detection:
+  selection:
+    ParentImage|endswith: ['\\Tomcat*.exe', '\\java.exe']
+    Image|endswith: ['\\cmd.exe', '\\powershell.exe']
+  condition: selection
+```
+
+**Why it fires:** legitimate Tomcat usage almost never deploys a WAR via the text API from an
+external IP, and an application server spawning `cmd.exe` is behaviourally abnormal — the deploy
+log catches the *delivery*, the Sysmon rule catches the *execution*. Maps to **ATT&CK T1190 /
+T1078 / T1505.003 / T1059**.
+
+**Defensive controls:** remove or firewall the Manager app; replace default `tomcat-users.xml`
+credentials; run Tomcat as a low-privilege service account (so RCE ≠ SYSTEM); restrict deploy
+endpoints to localhost; alert on new context deployments.
+
+## 9. References
 
 - Apache Tomcat Manager documentation — deployment and `tomcat-users.xml` defaults.
-- MITRE ATT&CK T1190 / T1078 / T1505.003.
+- MITRE ATT&CK T1190 / T1078 / T1505.003 / T1059.
